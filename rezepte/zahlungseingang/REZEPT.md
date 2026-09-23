@@ -130,9 +130,12 @@ Schritt gibt deshalb **eine Zeile JSON** aus, und die Schleife lebt im Flow.
 | Schritt | Eingabe | Ausgabe (eine Zeile JSON) | Invariante |
 |---|---|---|---|
 | 1 Arbeitsliste | – | `lauf`, `anzahl`, `saetze[]` mit `id`, `beleg_nummer`, `nummer_art`, `betrag`, `buchungsdatum` | bricht ab, wenn ein Satz in `in_buchung` steht; holt in Schleifen bis leer (Suche liefert höchstens 100) |
-| 2 Satz sperren | `lauf`, `id` | `ok` oder `fehler` | liest vorher; nur `geprueft` mit leerer `buchungs_nr` → `in_buchung` + `roboter_lauf` |
-| 3 Satz verbuchen | `lauf`, `id`, `buchungs_nr` | `ok` oder `fehler` | liest vorher; nur eigener Lauf; `buchungs_nr` war leer |
-| 4 Satz-Fehler | `lauf`, `id`, `fehler_text` | `ok` oder `fehler` | liest vorher; nur eigener Lauf; Text ohne Kundendaten |
+| 2 Satz sperren | `lauf`, `id` | `id`, `beleg_nummer`, `nummer_art`, `betrag`, `buchungsdatum`, frisch gelesen | liest vorher; nur `geprueft` mit leerer `buchungs_nr` → `in_buchung` + `roboter_lauf` |
+| 3 Satz verbuchen | `lauf`, `id`, `buchungs_nr` | `id`, `status` | liest vorher; nur eigener Lauf; `buchungs_nr` war leer |
+| 4 Satz-Fehler | `lauf`, `id`, Schrittname, Meldung | `id`, `status` | liest vorher; nur eigener Lauf; Meldung ohne Kundendaten → `fehler_text` |
+
+Scheitert ein Schritt (fremder Lauf, falscher Status, Anlage nicht erreichbar), bricht er mit einem
+Skriptfehler ab, und der Flow beendet den Lauf.
 
 Für alle vier gilt: Jedes Schreiben liest vorher und schickt alle Felder zurück (`update`
 überschreibt vollständig), `source = roboter:buchung`, `as_of` = Laufdatum, kein Retry auf
