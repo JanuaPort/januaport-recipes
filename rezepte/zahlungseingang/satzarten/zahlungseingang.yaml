@@ -1,0 +1,90 @@
+# Satzart "zahlungseingang" — Betreiber-Datei fuer JNPT_KARTEIEN_DIR.
+# Rezept: rezepte/zahlungseingang/REZEPT.md (Abschnitt 3).
+# Pruefen vor dem Neustart: jnpt kartei check
+#
+# Bewusst OHNE freigabe-Ebene: Zugriff entsteht nur ueber tool-genau vergebene
+# Scopes. Mit "freigabe: team" bekaeme der Roboter als Team-Mitglied auch add und
+# delete, und das laesst sich nicht werkzeug-genau zuruecknehmen.
+name: zahlungseingang
+description: >-
+  Arbeitsliste fuer Zahlungseingaenge. Ein Satz je Geldeingang (richtung CRDT, status BOOK)
+  aus den Kontoauszuegen. Die KI legt an und zieht Belegnummer und Nummernart aus dem
+  Verwendungszweck, ein Mensch gibt je Satz frei (status geprueft), ein Roboter bucht im
+  Fachsystem und schreibt verbucht oder fehler zurueck. Betraege sind Zeichenketten,
+  zeichengenau aus dem Auszug. Die Gegenpartei kann ein Pseudonym-Kuerzel tragen.
+  Ob eine Belegnummer im Fachsystem existiert, weiss nur der Roboter beim Buchen.
+fields:
+  - name: transaktionsschluessel
+    description: Idempotenz-Schluessel. acct_svcr_ref der Buchung, sonst <kontoauszug>#<eintrag_index>. Vor jedem Anlegen danach suchen.
+    type: string
+    required: true
+    filter: true
+  - name: kontoauszug
+    description: Dateiname aus list_statements - die Rueckverfolgung zur Quelle.
+    type: string
+    required: true
+    filter: true
+  - name: eintrag_index
+    description: Position der Buchung in eintraege[] des Auszugs.
+    type: integer
+    required: true
+  - name: buchungsdatum
+    description: JJJJ-MM-TT aus dem Auszug.
+    type: string
+    required: true
+    filter: true
+  - name: betrag
+    description: Zeichenkette, woertlich aus dem Auszug. Der Roboter tippt genau diesen Text.
+    type: string
+    required: true
+  - name: waehrung
+    type: string
+    required: true
+    filter: true
+  - name: gegenpartei
+    description: Woertlich aus dem Auszug, kann ein Pseudonym-Kuerzel sein. Der Roboter braucht es nicht.
+    type: string
+    search: true
+  - name: verwendungszweck
+    description: Woertlich aus dem Auszug. Kuerzel nur fuer IBAN und E-Mail, Belegnummern im Klartext.
+    type: string
+    search: true
+  - name: status
+    description: neu (KI) -> geprueft (KI nach Freigabe) -> in_buchung (Roboter) -> verbucht | fehler (Roboter).
+    type: string
+    required: true
+    filter: true
+    enum: [neu, geprueft, in_buchung, verbucht, fehler]
+  - name: trefferart
+    description: Ergebnis des Abgleichs. manuell = der freigebende Mensch hat Nummer oder Art genannt.
+    type: string
+    filter: true
+    enum: [eindeutig, mehrdeutig, kein_treffer, manuell]
+  - name: nummer_art
+    description: Bestimmt, welche Maske der Roboter im Fachsystem oeffnet. Pflicht fuer geprueft.
+    type: string
+    filter: true
+    enum: [rechnung, auftrag, beleg]
+  - name: beleg_nummer
+    description: Die Nummer aus dem Verwendungszweck. Pflicht fuer geprueft.
+    type: string
+    filter: true
+  - name: buchungs_nr
+    description: Beleg der Buchung, vom Roboter im Fachsystem abgelesen. Pflicht fuer verbucht.
+    type: string
+    filter: true
+  - name: roboter_lauf
+    description: Lauf-Kennung des Roboters (JJJJ-MM-TTThhmm-<rechner>). Bleibt nach verbucht oder fehler stehen.
+    type: string
+    filter: true
+  - name: fehler_text
+    description: Schrittname und Meldung der Oberflaeche, ohne Kundendaten.
+    type: string
+    search: true
+  - name: bearbeitet_am
+    description: JJJJ-MM-TT hh:mm, lokale Zeit des letzten Zustandswechsels.
+    type: string
+  - name: notiz
+    description: Freitext fuer Sonderfaelle.
+    type: string
+    search: true
