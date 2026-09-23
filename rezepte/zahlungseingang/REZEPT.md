@@ -21,6 +21,7 @@ integrationen:
 satzarten: [satzarten/zahlungseingang.yaml]
 beisteller:
   - januaport-plugins/ebics-abholer
+  - januaport-plugins/kartei-rpa
 ---
 
 # Rezept: Zahlungseingang
@@ -122,10 +123,15 @@ neu ──(Freigabe, KI setzt)──▶ geprueft ──(Roboter)──▶ in_buc
 die Ablage. Er ist optional, denn jede Lieferung von camt-Dateien in das Verzeichnis der
 Integration genügt.
 
-**Roboter-Schritte (Vertrag).** Eine Referenz-Implementierung für Power Automate Desktop
-ist in Arbeit (JanuaPort/januaport#806, `januaport-plugins/kartei-rpa`). Bis dahin gilt
-dieser Vertrag. Jede RPA-Aktion ist ein eigener Prozess ohne geteilten Zustand; jeder
-Schritt gibt deshalb **eine Zeile JSON** aus, und die Schleife lebt im Flow.
+**Roboter-Schritte: `januaport-plugins/kartei-rpa`.** Der Beisteller liefert ein
+PowerShell-Modul, vier Skripte für Power Automate Desktop, eine Flow-Vorlage, einen Probelauf
+ohne Fachsystem und eine Anschluss-Prüfung für den Roboter-Rechner (Anleitung im README
+dort). **Ohne Einstellungsdatei passt er auf diese Satzart:** Seine Voreinstellungen sind
+genau die Feldnamen von `satzarten/zahlungseingang.yaml`. Wer Felder umbenennt, legt
+`kartei-rpa.einstellungen.psd1` daneben. Jede RPA-Aktion ist ein eigener Prozess ohne
+geteilten Zustand; jeder Schritt gibt deshalb **eine Zeile JSON** aus, und die Schleife lebt
+im Flow. Ehrlich zum Stand: Die Skripte sind für die Veröffentlichung neu geschrieben und
+durch Tests geprüft; im Pilotbetrieb läuft noch ihre Vorgängerfassung.
 
 | Schritt | Eingabe | Ausgabe (eine Zeile JSON) | Invariante |
 |---|---|---|---|
@@ -141,7 +147,8 @@ Für alle vier gilt: Jedes Schreiben liest vorher und schickt alle Felder zurüc
 überschreibt vollständig), `source = roboter:buchung`, `as_of` = Laufdatum, kein Retry auf
 Schreibaufrufe, und der Token erscheint nie in Log oder Ausgabe. Den Transport (drei
 HTTP-Anfragen gegen `/mcp`) beschreibt das Muster `skript-als-abnehmer`, die PAD-Fallen das
-mitgelieferte Wissen `power-automate-desktop`.
+mitgelieferte Wissen `power-automate-desktop`. Die Tabelle fasst zusammen, was der Flow von den
+Skripten sieht; verbindlich ist `kartei-rpa`.
 
 ## 4. Zugänge und Rechte
 
@@ -220,8 +227,9 @@ Satzart neu verbinden (manche holen die Werkzeugliste nur beim Verbinden).
 
 **Mitspieler außerhalb der Anlage:** der Roboter-Rechner (Erreichbarkeit der Anlage, bei
 eigener Zertifizierungsstelle deren Wurzel im Zertifikatspeicher, Token nur im
-Anmeldeinformationsspeicher des Flow-Kontos) · der Flow mit der Klickfolge, die ein Mensch vor
-Ort aufnimmt · der Zeitplan des Roboters.
+Anmeldeinformationsspeicher des Flow-Kontos, Voreinstellung `jnpt-roboter`; Prüfung mit
+`Test-JnptAnschluss.ps1` aus `kartei-rpa`) · der Flow nach `kartei-rpa/pad/FLOW-VORLAGE.md` mit
+der Klickfolge, die ein Mensch vor Ort aufnimmt · der Zeitplan des Roboters.
 
 ## 8. Fehlerfälle
 
