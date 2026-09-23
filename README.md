@@ -20,4 +20,4 @@ Agenten-Anweisung, Skripte und Prüfsteine. Aufbau und Regeln: [`REZEPT-FORMAT.m
 
 | Rezept | Ziel | Stand |
 |---|---|---|
-| [`rezepte/zahlungseingang`](rezepte/zahlungseingang/REZEPT.md) | Die KI ordnet Zahlungseingänge aus dem Kontoauszug Belegen zu, ein Mensch gibt frei, ein Roboter bucht in einem Fachsystem ohne Schnittstelle. | belegt |
+| [`rezepte/zahlungseingang`](rezepte/zahlungseingang/REZEPT.md) | Die KI ordnet Zahlungseingänge aus dem Kontoauszug Belegen zu, ein Mensch gibt frei, ein Roboter bucht in einem Fachsystem ohne Schnittstelle. | erprobt |
