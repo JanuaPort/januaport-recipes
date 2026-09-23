@@ -3,7 +3,7 @@ name: zahlungseingang
 titel: Zahlungseingänge zuordnen und in einem Fachsystem ohne Schnittstelle buchen lassen
 ziel: Die KI ordnet jeden Geldeingang aus dem Kontoauszug einem Beleg zu, ein Mensch gibt je Fall frei, ein Roboter bucht im Fachsystem.
 stufe: 3
-stand: belegt
+stand: erprobt
 version: 0.1.0
 jnpt_ab: "0.53.0"
 muster: [arbeitsliste-rpa, abholer-als-beisteller, skript-als-abnehmer, rueckfrage-per-entwurf]
@@ -31,11 +31,12 @@ Roboter bucht in einem Fachsystem, das weder Schnittstelle noch Import hat.
 
 ## 0. Stand und Einordnung
 
-**Stand: belegt.** Das Rezept läuft bei einem Pilotkunden im Betrieb. Dort ist ein
-ERP-System ohne Schnittstelle, Import und Export das Ziel, und Power Automate Desktop ist
-der Roboter. Der Betrieb ist ab JanuaPort 0.53.0 belegt. Kunde, Ort und Fachsystem nennen wir
-nicht. Satzart und Anweisung sind für die Veröffentlichung neu geschrieben; Feldnamen und
-Texte weichen vom Pilotbetrieb ab, der Ablauf nicht.
+**Stand: erprobt.** Der Ablauf ist bei einem Pilotkunden gegen den echten Betrieb gelaufen,
+die Buchungen stehen im Audit; **die Abnahme steht aus.** Ziel war dort ein ERP-System ohne
+Schnittstelle, Import und Export, der Roboter war Power Automate Desktop, JanuaPort lief in
+Version 0.53.0. Kunde, Ort und Fachsystem nennen wir nicht. Satzart, Anweisung und Roboter-Skripte
+sind für die Veröffentlichung neu geschrieben; Feldnamen und Texte weichen vom Pilot ab, der
+Ablauf im Kern nicht.
 
 **Stufe 3 — Use Cases bauen.** Das Rezept setzt vier Muster übereinander, die jede
 JanuaPort-Anlage mitliefert (`wissen_get muster/<name>`):
@@ -131,7 +132,8 @@ genau die Feldnamen von `satzarten/zahlungseingang.yaml`. Wer Felder umbenennt, 
 `kartei-rpa.einstellungen.psd1` daneben. Jede RPA-Aktion ist ein eigener Prozess ohne
 geteilten Zustand; jeder Schritt gibt deshalb **eine Zeile JSON** aus, und die Schleife lebt
 im Flow. Ehrlich zum Stand: Die Skripte sind für die Veröffentlichung neu geschrieben und
-durch Tests geprüft; im Pilotbetrieb läuft noch ihre Vorgängerfassung.
+durch Tests geprüft; im Pilot sind sie noch nicht eingesetzt (dort bucht ein von Hand gebauter
+Flow).
 
 | Schritt | Eingabe | Ausgabe (eine Zeile JSON) | Invariante |
 |---|---|---|---|
