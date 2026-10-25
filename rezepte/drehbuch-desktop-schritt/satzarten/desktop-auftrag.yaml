@@ -1,0 +1,46 @@
+# Satzart Desktop-Auftrag — Betreiber-Datei fuer JNPT_KARTEIEN_DIR.
+# Pruefen: jnpt kartei check, danach Neustart.
+# Ohne freigabe und owner_team: Rechte ausschliesslich ueber Scopes.
+# enum begrenzt Werte, nicht Uebergaenge oder schreibende Rollen.
+name: desktop_auftrag
+description: >-
+  Desktop-Auftrag als Uebergabe KI -> Python-Skript -> KI ueber die Kartei.
+  Ein Satz je stabiler Kennung. Die KI bereitet nach Auftrag des Menschen vor,
+  das Skript sperrt und schreibt selbst das Ergebnis mit seinem Lauf-Token,
+  die KI wertet aus. Statusrollen sind Ablaufvertrag, keine Kern-Sperre.
+  Nur ein Pin auf einem Geraet fuehrt diese Arbeitsliste seriell aus.
+  Bei unklarer Wirkung bleibt in_arbeit bis zur menschlichen Zielpruefung.
+  Nur Kennungen und knappe Nachweise, keine Rohdaten oder Zugangsdaten.
+fields:
+  - name: kennung
+    description: Stabile Idempotenz-Kennung je Vorgang. Vor add danach suchen; kein Eindeutigkeitszwang im Kern.
+    type: string
+    required: true
+    filter: true
+  - name: quelle
+    description: Herkunftsverweis des Auftrags ohne Rohinhalt.
+    type: string
+    required: true
+    filter: true
+  - name: status
+    description: vorbereitet (KI), in_arbeit und erledigt oder fehler (Skript), ausgewertet (KI). Keine automatischen Rueckspruenge.
+    type: string
+    required: true
+    filter: true
+    enum: [vorbereitet, in_arbeit, erledigt, fehler, ausgewertet]
+  - name: lauf
+    description: Eigene Lauf-Kennung des Skripts, beim Sperren setzen, bei Abschluss erhalten. Kein zusaetzliches SDK-Feld.
+    type: string
+    filter: true
+  - name: ergebnis
+    description: Knapper im Ziel gepruefter Nachweis fuer erledigt. Bei ausgewertet erhalten.
+    type: string
+    filter: true
+  - name: fehler_text
+    description: Schritt und bekannte Fehlerklasse ohne Inhalte. Bei unklarer Wirkung in_arbeit stehen lassen.
+    type: string
+    search: true
+  - name: notiz
+    description: Bewertung der KI oder Entscheidung zum Nachlauf. ausgewertet bedeutet bewertet, auch bei Fehler.
+    type: string
+    search: true
