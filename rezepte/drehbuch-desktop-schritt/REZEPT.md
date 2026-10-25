@@ -2,7 +2,7 @@
 name: drehbuch-desktop-schritt
 titel: Ein Drehbuch mit einem Desktop-Schritt über die Kartei verbinden
 ziel: Ein Drehbuch-Agent bereitet in der Kartei vor, ein gepinntes Python-Skript führt den Desktop-Schritt aus und die KI wertet das Kartei-Ergebnis aus.
-stufe: 3
+stufe: 2
 stand: durchdacht
 version: 0.1.0
 jnpt_ab: "0.85.0"
@@ -22,7 +22,7 @@ KI → Kartei → Desktop-Läufer/Python → Kartei → KI, für Software ohne S
 sind seit JanuaPort 0.85.0 gebaut. Client `desktop-runner`: gebaut, **noch kein Release,
 unsigniert**, gemeinsame Live-Abnahme offen. Klickfolge entsteht vor Ort.
 
-**Stufe 3 — Use Cases bauen.** Muster über `wissen_get muster/<name>`:
+**Stufe 2 — Gemeinsam bauen** (Stufenweg seit #1046). Muster über `wissen_get muster/<name>`:
 
 | Muster | Was es hier beiträgt |
 |---|---|
