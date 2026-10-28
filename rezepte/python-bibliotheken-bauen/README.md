@@ -211,10 +211,9 @@ Fassung der Baulogik aus. Actions haben SHA-Pins mit Versionskommentar,
 uv und pip feste Versionen. Änderungen der Baulogik verlangen ein Update ihres
 Commit-Pins im Workflow. Der Lauf braucht Netz nur beim Bauen und für GitHub.
 
-Für `januaport-plugins/script-runner/README.md`, Abschnitt „Lock bauen“, liegt
-[`laeufer-readme.patch`](laeufer-readme.patch) bereit. Er ergänzt den Verweis
-auf dieses Rezept. Er wird separat im Plugin-Repository übernommen; dieses
-Rezept ändert dort weder Code noch Dateien.
+Das README des Skript-Läufers (`januaport-plugins/script-runner/README.md`,
+Abschnitt „Lock bauen“) verweist auf dieses Rezept. Dieses Rezept ändert dort
+weder Code noch Prüfregeln.
 
 ## 8. Fehlerfälle
 

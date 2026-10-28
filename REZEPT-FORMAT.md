@@ -36,7 +36,7 @@ eigene Datei, weil sie wörtlich in einen Client kopiert wird. Alles andere steh
 
 **Build-Rezept (#1230):** `rezepte/python-bibliotheken-bauen/README.md` trägt denselben
 YAML-Kopf und dieselben Pflichtabschnitte. Es darf die lokale Baulogik, Offline-Tests,
-eine Agenten-Anweisung, einen Prüfbericht, eine Dokumentations-Patchvorlage und `beispiel/requirements.in`
+eine Agenten-Anweisung und `beispiel/requirements.in`
 mitliefern; der zugehörige wiederverwendbare Workflow liegt unter `.github/workflows/`.
 Gebaut werden Lock und Wheels ausschließlich für das Betreiber-Repository. Gebaute
 Wheels gehören nicht in den Rezeptkatalog. Diese Ausnahme betrifft den Bau, nicht
