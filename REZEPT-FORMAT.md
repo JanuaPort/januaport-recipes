@@ -29,10 +29,18 @@ rezepte/<name>/
   satzarten/<satzart>.yaml  Betreiber-Datei für JNPT_KARTEIEN_DIR (falls das Rezept eine Kartei nutzt)
 ```
 
-Mehr Dateien gibt es nicht. Die Satzart ist eine eigene Datei, weil sie wörtlich in
+Für Betriebsrezepte gibt es keine weiteren Dateien. Die Satzart ist eine eigene Datei, weil sie wörtlich in
 `JNPT_KARTEIEN_DIR` gelegt und mit `jnpt kartei check` geprüft wird. Die Anweisung ist eine
 eigene Datei, weil sie wörtlich in einen Client kopiert wird. Alles andere steht in
 `REZEPT.md`. Richtwerte: `REZEPT.md` 10–16 KiB, `anweisung.md` unter 4 KiB.
+
+**Build-Rezept (#1230):** `rezepte/python-bibliotheken-bauen/README.md` trägt denselben
+YAML-Kopf und dieselben Pflichtabschnitte. Es darf die lokale Baulogik, Offline-Tests,
+eine Agenten-Anweisung, einen Prüfbericht, eine Dokumentations-Patchvorlage und `beispiel/requirements.in`
+mitliefern; der zugehörige wiederverwendbare Workflow liegt unter `.github/workflows/`.
+Gebaut werden Lock und Wheels ausschließlich für das Betreiber-Repository. Gebaute
+Wheels gehören nicht in den Rezeptkatalog. Diese Ausnahme betrifft den Bau, nicht
+Programme, die auf einer Anlage laufen.
 
 ## 3. Der YAML-Kopf
 
@@ -84,6 +92,8 @@ Repositories Versionen tragen. Werkzeugnamen stehen ohne Präfix; auf der Anlage
   werden per Repo/Pfad referenziert. Gibt es dort noch keins, beschreibt das Rezept die
   Schritte als **Vertrag** (Schritt · Eingabe · Ausgabe · Invarianten) und legt keinen
   eigenen Code bei.
+  Ausnahme ist die lokale Baulogik des Build-Rezepts aus §2; die Prüfregeln und
+  Beisteller des Läufers bleiben in `januaport-plugins` maßgeblich.
 - **Agenten-Anweisung** als reiner Text ohne Client-Syntax, Platzhalter in spitzen Klammern.
   Sie trägt die harten Regeln des Rezepts, vor allem die Freigabe durch den Menschen.
 
