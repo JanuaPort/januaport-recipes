@@ -1,0 +1,5 @@
+# Build-Ergebnisse bleiben im Betreiber-Repository, nicht im Rezeptkatalog.
+/rezepte/python-bibliotheken-bauen/beispiel/wheels/
+/rezepte/python-bibliotheken-bauen/beispiel/requirements.lock
+__pycache__/
+/.arbeit/

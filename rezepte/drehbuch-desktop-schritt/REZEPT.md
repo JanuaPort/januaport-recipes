@@ -197,6 +197,11 @@ nacheinander; Status ist keine atomare Reservierung konkurrierender Clients.
 **Außerhalb:** Mensch prüft Konto, Sitzung, Klickwirkung; Paket-Verantwortlicher
 liefert Python-ZIP, gegebenenfalls Lock und Wheels.
 
+Für Lock und Windows-Wheels gibt es das Build-Rezept
+[`python-bibliotheken-bauen`](../python-bibliotheken-bauen/README.md) mit Ziel `windows`.
+Es bereitet Artefakte vor; Windows-Pfade, SHA-256 und Allowlist prüft weiterhin der
+Desktop-Läufer. Dieser Weg ist durchdacht, ein gemeinsamer Desktop-Beleg steht aus.
+
 ## 8. Fehlerfälle
 
 | Fall | Erkennung | Verhalten | Wer löst |

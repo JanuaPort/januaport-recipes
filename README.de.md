@@ -27,4 +27,5 @@ Jedes Rezept nennt seinen Stand ehrlich, in drei Stufen: **durchdacht** (ausgear
 
 | Rezept | Ziel | Stand |
 |---|---|---|
+| [`rezepte/python-bibliotheken-bauen`](rezepte/python-bibliotheken-bauen/README.md) | Aus einer kurzen requirements.in Wheels für Python 3.12 und ein Hash-Lock bauen, gegenprüfen und als PR im Betreiber-Repository vorschlagen. | **Durchdacht.** Stufe 2, bis zum Merge im Bau; Anlagenbeleg einschließlich Windows-Desktop-Pins offen. |
 | [`rezepte/zahlungseingang`](rezepte/zahlungseingang/REZEPT.md) | Die KI ordnet Zahlungseingänge aus dem Kontoauszug Belegen zu, ein Mensch gibt je Fall frei, ein Roboter bucht in einem Fachsystem ohne Schnittstelle. | **Erprobt.** Bei einem Pilotkunden gegen den echten Betrieb gelaufen; die Abnahme steht aus. Satzart, Anweisung und Roboter-Skripte sind für die Veröffentlichung neu geschrieben. |
