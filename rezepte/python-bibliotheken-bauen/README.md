@@ -157,8 +157,8 @@ Veröffentlichungsweg per PAT, Deploy-Key oder direktem Commit auf main.
    **„Herkunft ist PyPI, geprüft sind nur die Hashes“**. Der Betreiber prüft Auswahl,
    Schadpakete, Typosquatting und Lizenzen; Hashes belegen keine Herkunft.
 6. Mensch mergt und pinnt anschließend den Commit auf dem Standard-Zweig wie
-   bisher. Der Läufer arbeitet ohne pip und Netz; bis zur Vorbereitung der
-   Bibliotheken steht der Pin auf `pending`.
+   bisher. Der Läufer arbeitet ohne pip und Netz; bis zum ersten Abgleich meldet der
+   Pin `unknown`, während der Vorbereitung der Bibliotheken `pending`, danach `ready`.
 
 **Ein Lauf zur Zeit:** Workflow-Concurrency serialisiert je Repository und
 Skriptordner, auch bei unterschiedlichen Zielen. Lokale Betreiber starten je
@@ -234,7 +234,7 @@ weder Code noch Prüfregeln.
 | PyPI/GitHub nicht erreichbar | Unterprozessfehler | Lauf gescheitert, nach Klärung erneut starten |
 | Token darf keinen PR öffnen | gh-Schritt | Warnung „PR nicht angelegt“, Lauf bleibt grün; Mensch öffnet den PR über den Link in der Zusammenfassung |
 | Zweig lässt sich nicht pushen | git-push-Schritt | Lauf rot; Admin prüft `contents: write` des Aufrufers |
-| Pin bleibt pending / ungültig | Pin-Liste des Läufers | Admin prüft Grund nach Läufer-README, keine Nachinstallation |
+| Pin bleibt unknown, pending oder ungültig | Pin-Liste des Läufers | Admin prüft Grund nach Läufer-README, keine Nachinstallation |
 
 ## 9. Prüfsteine
 
@@ -249,7 +249,7 @@ weder Code noch Prüfregeln.
   Wheels ausschließlich im temporären Test-PR, nicht in den Rezeptkatalog mergen.
 - [ ] Echter sdist-Negativlauf mit verständlicher Meldung.
 - [ ] Nach Merge: Abnahme am Showcase, Pin eines so gebauten Skriptordners
-  freigeben; `pending` → bereit. Erst dann Stufenweg „gebaut“ und Rezept „erprobt“.
+  freigeben; `unknown`/`pending` → `ready` (belegt 29.10., JanuaPort/januaport#1230). Erst dann Stufenweg „gebaut“ und Rezept „erprobt“.
 - [ ] Separater Desktop-Beleg: bis dahin Windows ausdrücklich durchdacht.
 
 Lokale Messungen und Suchtreffer stehen im Umsetzungsbericht. Ein lokaler
