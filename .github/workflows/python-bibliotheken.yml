@@ -125,6 +125,19 @@ jobs:
         shell: bash
         run: |
           git push origin "HEAD:refs/heads/$PR_BRANCH"
-          gh pr create --repo "$GITHUB_REPOSITORY" --base "$BASE_BRANCH" \
+          # Viele Orgs verbieten Actions das Anlegen von PRs. Der Zweig bleibt
+          # dann stehen, ein Mensch öffnet den PR über den Compare-Link.
+          if url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$BASE_BRANCH" \
             --head "$PR_BRANCH" --title "Python-Bibliotheken aktualisieren ($ZIEL)" \
-            --body-file "$RUNNER_TEMP/pr.md"
+            --body-file "$RUNNER_TEMP/pr.md"); then
+            printf '### PR geöffnet\n\n%s\n' "$url" >> "$GITHUB_STEP_SUMMARY"
+          else
+            vergleich="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/$BASE_BRANCH...$PR_BRANCH?expand=1"
+            echo "::warning title=PR nicht angelegt::gh pr create ist gescheitert, meist weil Actions hier keine PRs anlegen dürfen (Fehler oben). Zweig $PR_BRANCH steht bereit, PR von Hand öffnen: $vergleich"
+            {
+              printf '### PR von Hand öffnen\n\n'
+              printf 'Der PR ließ sich nicht automatisch anlegen, meist weil Actions hier keine PRs anlegen dürfen. Der Zweig **%s** ist gepusht.\n\n' "$PR_BRANCH"
+              printf '[PR öffnen](%s) und als Beschreibung den folgenden Text übernehmen:\n\n' "$vergleich"
+              cat "$RUNNER_TEMP/pr.md"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
