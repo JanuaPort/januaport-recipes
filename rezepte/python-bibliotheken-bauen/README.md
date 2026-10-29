@@ -124,9 +124,16 @@ Windows-Pfade, Wheel-SHA-256 und Allowlist prüft der Desktop-Läufer selbst.
 | Lokaler Build | Betreiberkonto | PyPI lesen, Skriptordner schreiben |
 | Pin-Freigabe | Mensch mit bestehendem Admin-Zugang | bisheriger Pin-Weg, separat vom Build |
 
-Kein weiteres Secret. Der PR wird über `gh pr create` mit `GITHUB_TOKEN`
-geöffnet. Die Repository-Einstellung „Allow GitHub Actions to create and approve
-pull requests“ muss das Erzeugen erlauben; ohne sie scheitert der PR-Schritt.
+Kein weiteres Secret. Der PR-Job pusht den Zweig und versucht dann, den PR
+über `gh pr create` mit `GITHUB_TOKEN` zu öffnen. Dafür gibt es zwei Wege:
+
+- **Automatischer PR:** Die Repository-Einstellung „Allow GitHub Actions to create
+  and approve pull requests“ ist an. Viele Orgs oder Enterprises sperren sie, dann
+  lässt sie sich im Repository nicht einschalten.
+- **Compare-Link (Standard bei gesperrter Einstellung):** Scheitert `gh pr create`,
+  bleibt der Zweig `wheels/<run_id>-<run_attempt>` stehen. Der Lauf bleibt grün,
+  zeigt eine Warnung „PR nicht angelegt“ und schreibt in die Zusammenfassung einen
+  Link „PR öffnen“ samt PR-Text. Ein Mensch legt den PR mit einem Klick an.
 Ein wiederverwendbarer Aufrufer muss die beiden Schreibrechte erlauben; der
 Build-Job reduziert sie ausdrücklich auf Lesen. Es gibt keinen zweiten
 Veröffentlichungsweg per PAT, Deploy-Key oder direktem Commit auf main.
@@ -172,7 +179,7 @@ beim Menschen. Der Läufer bekommt keine Build-Werkzeuge.
 
 | Wer / was | Wofür | Zuschnitt | Wann |
 |---|---|---|---|
-| Admin: Actions-PR-Erlaubnis | PR mit GITHUB_TOKEN | nur Betreiber-Repository | vor erstem Workflow |
+| Admin: Actions-PR-Erlaubnis (optional) | automatischer PR mit GITHUB_TOKEN; ohne sie Compare-Link | nur Betreiber-Repository | vor erstem Workflow |
 | Betreiber: requirements.in | Paketauswahl | öffentlicher PyPI-Name, optional Version | vor Build |
 | Betreiber: Manifest/Skript | späterer Pin | `requirements: requirements.lock` | vor Freigabe |
 | Bauer: Workflow oder uv lokal | Artefakte erzeugen | Ordner und Ziel | nach Paketwahl |
@@ -225,7 +232,8 @@ weder Code noch Prüfregeln.
 | Größe oder Dateizahl überschritten | ZIP-Inhalt gelesen | Abbruch; Paketmenge verkleinern |
 | uv-Version anders | Versionsprüfung | uv 0.11.3 bereitstellen |
 | PyPI/GitHub nicht erreichbar | Unterprozessfehler | Lauf gescheitert, nach Klärung erneut starten |
-| Token darf keinen PR öffnen | gh-Schritt | Admin prüft Repository-Einstellung und Aufruferrechte |
+| Token darf keinen PR öffnen | gh-Schritt | Warnung „PR nicht angelegt“, Lauf bleibt grün; Mensch öffnet den PR über den Link in der Zusammenfassung |
+| Zweig lässt sich nicht pushen | git-push-Schritt | Lauf rot; Admin prüft `contents: write` des Aufrufers |
 | Pin bleibt pending / ungültig | Pin-Liste des Läufers | Admin prüft Grund nach Läufer-README, keine Nachinstallation |
 
 ## 9. Prüfsteine
@@ -236,7 +244,8 @@ weder Code noch Prüfregeln.
 - [ ] Mutationsproben entfernen jede geprüfte Sperre in einer temporären Kopie;
   die zugehörige Verbotsassertion wird rot, unveränderte Fassung wieder grün.
 - [ ] shellcheck für Shell-Dateien, actionlint für Workflow.
-- [ ] Echter pandas-Build im Rezept-Repository per Action: PR und Gegenprobe grün;
+- [ ] Echter pandas-Build im Rezept-Repository per Action: PR (dort per
+  Compare-Link, die Org sperrt Actions-PRs) und Gegenprobe grün;
   Wheels ausschließlich im temporären Test-PR, nicht in den Rezeptkatalog mergen.
 - [ ] Echter sdist-Negativlauf mit verständlicher Meldung.
 - [ ] Nach Merge: Abnahme am Showcase, Pin eines so gebauten Skriptordners
