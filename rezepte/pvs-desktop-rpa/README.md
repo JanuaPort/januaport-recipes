@@ -270,7 +270,7 @@ Direkte Demo unter PowerShell, nur mit dem eingebauten synthetischen Mock:
 - [x] Ausnahme-Leckproben an jeder verwendeten Adapter-Methode, geschlossenes JSON,
   stdout/stderr sowie echter CLI-Prozess mit Dateivergleich und Audit-Hook geprüft.
 - [x] Vier Pflichtmutationen und weitere Sperrenmutationen werden seriell erkannt;
-  unveränderter Quelltext bleibt grün. Zahlen im `pruefbericht.md`.
+  unveränderter Quelltext bleibt grün. Ausführbar über `mutationen.py`.
 - [ ] Dieselben Verbotsproben und Mutationen am echten Adapter sowie am Läufer
   durchführen. Hier ist ausschließlich der Mock vorhanden.
 - [ ] Ergebnisweg, tatsächliche Setup-Ansichten, Lizenzbedingungen und Anlagenlauf
