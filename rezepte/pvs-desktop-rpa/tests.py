@@ -14,9 +14,11 @@ sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from pvs_rpa.adapter import Anmeldung, Dialog, Gesperrt, NichtBereit, Zeitlimit
+from pvs_rpa.adapter import Anmeldung, Dialog, Gesperrt, NichtBereit, Zeitlimit, Ziel
+from pvs_rpa.adapter import KontextGewechselt, ProgrammFehlt
 from pvs_rpa.codes import Code, ergebnis_json
-from pvs_rpa.kern_annahme import run_annahme
+from pvs_rpa.eingabe import lesen
+from pvs_rpa.kern_annahme import bewerten, run_annahme
 from pvs_rpa.kern_ansicht import SETUPS, run_ansicht
 from pvs_rpa.mock import MockAdapter
 
@@ -40,6 +42,15 @@ def ansicht(mock, setup="setup_a"):
 
 
 class AnnahmeTests(unittest.TestCase):
+    def test_ungueltige_fakten_direkt_am_fachkern(self):
+        for eintrag, kennung in ((None, KENNUNG), (befund(), ANDERE),
+                                  (befund(kennung=""), ""), (befund(revision=-1), KENNUNG),
+                                  (befund(bekannt="ja"), KENNUNG)):
+            with self.subTest(eintrag=eintrag):
+                self.assertEqual(bewerten(eintrag, kennung, False), Code.UNBEKANNT)
+        with self.assertRaises(Zeitlimit):
+            bewerten(befund(vollstaendig=False), KENNUNG, False)
+
     def test_kategorientabelle(self):
         faelle = [
             ({}, "angenommen"),
@@ -173,6 +184,27 @@ class AnnahmeTests(unittest.TestCase):
         self.assertEqual(annahme(mock, nur_melden=False), {"codes": {"angenommen": 1, "zeitlimit": 1}})
         self.assertEqual(mock.annahme_aufrufe, [KENNUNG])
 
+    def test_kern_prueft_deadline_vor_lesen(self):
+        mock = MockAdapter([befund()])
+        zeiten = iter([0, 6])
+        self.assertEqual(run_annahme(mock, nur_melden=False, uhr=lambda: next(zeiten)),
+                         {"codes": {"zeitlimit": 1}})
+        self.assertNotIn("lese_anmeldung", mock.aufrufe)
+
+    def test_kern_prueft_deadline_vor_schreiben(self):
+        mock = MockAdapter([befund()])
+        zeiten = iter([0, 0, 6])
+        self.assertEqual(run_annahme(mock, nur_melden=False, uhr=lambda: next(zeiten)),
+                         {"codes": {"zeitlimit": 1}})
+        self.assertEqual(mock.annahme_aufrufe, [])
+
+    def test_ungueltige_kennung_in_momentaufnahme(self):
+        for kennung in ("", 7, None):
+            with self.subTest(kennung=kennung):
+                mock = MockAdapter([befund()], reihenfolge=[kennung])
+                self.assertEqual(annahme(mock, nur_melden=False), {"codes": {"unbekannt": 1}})
+                self.assertNotIn("lese_anmeldung", mock.aufrufe)
+
     def test_pvs_nicht_bereit(self):
         for zustand in ("nicht_gestartet", "anmeldemaske", "gesperrt", "unbekannt"):
             with self.subTest(zustand=zustand):
@@ -196,12 +228,29 @@ class AnnahmeTests(unittest.TestCase):
                 self.assertEqual(mock.aufrufe, [])
 
     def test_unerwartete_adapter_rueckgabe(self):
-        mock = MockAdapter([befund()])
-        mock.annehmen = lambda *args: LECK
-        self.assertEqual(annahme(mock, nur_melden=False), {"codes": {"intern": 1}})
+        for rueckgabe in (LECK, Code.GEOEFFNET, "angenommen"):
+            with self.subTest(rueckgabe=rueckgabe):
+                mock = MockAdapter([befund()])
+                mock.annehmen = lambda *args: rueckgabe
+                self.assertEqual(annahme(mock, nur_melden=False), {"codes": {"intern": 1}})
 
 
 class AnsichtTests(unittest.TestCase):
+    def test_kern_prueft_deadline_vor_ui(self):
+        mock = MockAdapter(offene_patienten=[KENNUNG])
+        zeiten = iter([0, 6])
+        self.assertEqual(run_ansicht(mock, "setup_a", uhr=lambda: next(zeiten)),
+                         {"codes": {"zeitlimit": 1}})
+        self.assertNotIn("zeige", mock.aufrufe)
+
+    def test_ungueltige_offene_kennung(self):
+        for kennung in ("", 7, None):
+            with self.subTest(kennung=kennung):
+                mock = MockAdapter(offene_patienten=[kennung])
+                self.assertEqual(ansicht(mock), {"codes": {"intern": 1}})
+                self.assertNotIn("pruefe_ziel", mock.aufrufe)
+                self.assertEqual(mock.ui_schritte, [])
+
     def test_setup_tabelle(self):
         erwartet = {
             "setup_a": (("programm_1", 1, "ansicht_a"), ("programm_2", 2, "ansicht_a")),
@@ -222,6 +271,8 @@ class AnsichtTests(unittest.TestCase):
                 mock = MockAdapter(offene_patienten=offen)
                 self.assertEqual(ansicht(mock), {"codes": {code: 1}})
                 self.assertEqual(mock.ui_schritte, [])
+                self.assertNotIn("pruefe_ziel", mock.aufrufe)
+                self.assertNotIn("zeige", mock.aufrufe)
 
     def test_programm_fehlt_auch_zweites_vor_erster_ui(self):
         for programm in ("programm_1", "programm_2"):
@@ -298,13 +349,121 @@ class AnsichtTests(unittest.TestCase):
 
 
 class GrenzenTests(unittest.TestCase):
+    def test_uhr_ausnahme_bleibt_intern(self):
+        def kaputt():
+            raise RuntimeError(LECK)
+        for funktion, argumente in ((run_annahme, ()), (run_ansicht, ("setup_a",))):
+            mock = MockAdapter([befund()], offene_patienten=[KENNUNG])
+            self.assertEqual(funktion(mock, *argumente, uhr=kaputt), {"codes": {"intern": 1}})
+            self.assertEqual(mock.aufrufe, [])
+
+    def test_eingabekanal_wirft_ohne_leck(self):
+        from unittest.mock import patch
+        class Kaputt:
+            def read(self):
+                raise RuntimeError(LECK)
+        for name in ("annahme", "ansicht"):
+            out, err = io.StringIO(), io.StringIO()
+            with patch.object(sys, "stdin", Kaputt()), contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                importlib.import_module(name).main()
+            self.assertEqual(json.loads(out.getvalue()), {"codes": {"intern": 1}})
+            self.assertEqual(err.getvalue(), "")
+
+    def test_exakte_code_menge(self):
+        self.assertEqual({c.value for c in Code}, {
+            "angenommen", "wuerde_annehmen", "kein_termin", "quartal_erst", "abweichung",
+            "neu", "karte", "schon_erledigt", "doppelt", "kostentraeger", "unbekannt",
+            "gesperrt", "geoeffnet", "kein_patient", "mehrdeutig", "programm_fehlt",
+            "pvs_nicht_bereit", "dialog", "zeitlimit", "intern",
+        })
+
+    def test_mock_sperren_direkt_an_der_wirkung(self):
+        mock = MockAdapter([befund()], offene_patienten=[KENNUNG])
+        ziel = Ziel("programm_1", 1, "ansicht_a")
+        with self.assertRaises(Zeitlimit):
+            mock.zeige(KENNUNG, ziel, 5)
+        self.assertEqual(mock.ui_schritte, [])
+        mock.warte_fokus(5)
+        with self.assertRaises(ValueError):
+            mock.pruefe_ziel(Ziel("programm_1", 1, "unbekannt"), 5)
+        mock.angenommen.add(KENNUNG)
+        self.assertEqual(mock.annehmen(KENNUNG, befund(), 5), Code.SCHON_ERLEDIGT)
+        mock.angenommen.clear()
+        mock.gesperrt.add(KENNUNG)
+        with self.assertRaises(Gesperrt):
+            mock.lese_anmeldung(KENNUNG, 5)
+        with self.assertRaises(Gesperrt):
+            mock.annehmen(KENNUNG, befund(), 5)
+        self.assertEqual(mock.angenommen, set())
+        mock.gesperrt.clear()
+        mock.eintraege[KENNUNG] = befund(vollstaendig=False)
+        with self.assertRaises(Zeitlimit):
+            mock.lese_anmeldung(KENNUNG, 5)
+        with self.assertRaises(Zeitlimit):
+            mock.bereit(0)
+
+    def test_ausgabekanal_wirft_ohne_traceback(self):
+        import annahme as modul
+        class Kaputt(io.StringIO):
+            def write(self, text):
+                raise RuntimeError(LECK)
+        err = io.StringIO()
+        with contextlib.redirect_stdout(Kaputt()), contextlib.redirect_stderr(err):
+            modul.ergebnis_abgeben('{"codes":{"intern":1}}')
+        self.assertEqual(err.getvalue(), "")
+
+    def test_ausgabe_validiert_auch_direkte_aufrufe(self):
+        import annahme as modul
+        for text in (LECK, json.dumps({"text": LECK}), '{"codes":{"unbekannter_code":1}}'):
+            out, err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                modul.ergebnis_abgeben(text)
+            try:
+                wert = json.loads(out.getvalue())
+            except ValueError:
+                self.fail("Ausgabe ist kein geschlossenes JSON")
+            self.assertEqual(wert, {"codes": {"intern": 1}})
+            self.assertEqual(err.getvalue(), "")
+
+    def test_parser_weist_verbotene_eingaben_ab(self):
+        for text, uc1 in (('[]', True), ('null', True), ('{"patient":"T-0000-0007"}', True),
+                          ('{"patient":true}', True),
+                          ('{"nur_melden":0}', True), ('{}', False), ('{"setup":0}', False),
+                          ('{"setup":"setup_a","patient":"T-0000-0007"}', False)):
+            with self.subTest(text=text, uc1=uc1):
+                try:
+                    lesen(text, annahme=uc1)
+                except BaseException as fehler:
+                    self.assertIs(type(fehler), ValueError)
+                else:
+                    self.fail("Verbotene Eingabe akzeptiert")
+
+    def test_eingabe_doppelte_schluessel_und_falsche_typen(self):
+        for name, texte in (
+            ("annahme", ('{"nur_melden":0}', '{"quartal_annehmen":1}',
+                         '{"nur_melden":true,"nur_melden":false}')),
+            ("ansicht", ('{"setup":1}', '{"setup":"setup_a","setup":"setup_b"}', '{}')),
+        ):
+            for text in texte:
+                with self.subTest(name=name, text=text):
+                    mock = MockAdapter([befund()], offene_patienten=[KENNUNG])
+                    self.assertEqual(json.loads(importlib.import_module(name).ausfuehren(text, mock)),
+                                     {"codes": {"intern": 1}})
+                    self.assertEqual(mock.aufrufe, [])
+
     def test_alle_ausnahmen_ohne_leck_an_jeder_adapter_methode(self):
         for funktion, methoden in (
             (lambda m: annahme(m, nur_melden=False), ("bereit", "anmeldungen", "lese_anmeldung", "annehmen")),
             (ansicht, ("bereit", "warte_fokus", "offene_kennungen", "pruefe_ziel", "zeige")),
         ):
             for methode in methoden:
-                for fehler in (RuntimeError(LECK), SystemExit(LECK), KeyboardInterrupt(LECK)):
+                signale = [(RuntimeError, "intern"), (SystemExit, "intern"), (KeyboardInterrupt, "intern"),
+                           (Dialog, "dialog"), (NichtBereit, "pvs_nicht_bereit"), (Zeitlimit, "zeitlimit"),
+                           (Gesperrt, "intern" if funktion is ansicht else "gesperrt"),
+                           (ProgrammFehlt, "programm_fehlt" if funktion is ansicht else "intern"),
+                           (KontextGewechselt, "mehrdeutig" if funktion is ansicht else "intern")]
+                for typ, code in signale:
+                    fehler = typ(LECK)
                     with self.subTest(methode=methode, typ=type(fehler).__name__):
                         mock = MockAdapter([befund()], offene_patienten=[KENNUNG])
                         mock.fehler[methode] = fehler
@@ -312,7 +471,7 @@ class GrenzenTests(unittest.TestCase):
                         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
                             result = funktion(mock)
                             encoded = ergebnis_json(result)
-                        self.assertEqual(result, {"codes": {"intern": 1}})
+                        self.assertEqual(result, {"codes": {code: 1}})
                         self.assertEqual(out.getvalue() + err.getvalue(), "")
                         for verboten in (NAME, KENNUNG, "Fenstertitel", "AUSNAHME-INHALT", "Traceback"):
                             self.assertNotIn(verboten, encoded + out.getvalue() + err.getvalue())

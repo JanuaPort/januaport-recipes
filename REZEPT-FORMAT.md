@@ -42,6 +42,13 @@ Gebaut werden Lock und Wheels ausschließlich für das Betreiber-Repository. Geb
 Wheels gehören nicht in den Rezeptkatalog. Diese Ausnahme betrifft den Bau, nicht
 Programme, die auf einer Anlage laufen.
 
+**Skript-Rezept (#1239):** `rezepte/pvs-desktop-rpa/README.md` trägt denselben
+YAML-Kopf und dieselben Pflichtabschnitte. Es darf einen Python-Fachkern als
+Paket mit synthetischem Mock, Offline-Tests, Skript-Einstiegen und
+Agenten-Anweisung mitbringen, aber keinen Adapter für ein konkretes Fremdprodukt.
+Der echte Adapter und das Betriebspaket gehören ins Betreiber-Repository;
+ein bestandener Offline-Test ist kein Anlagenbeleg.
+
 ## 3. Der YAML-Kopf
 
 Der Kopf trägt nur, was ein späterer Katalog maschinell braucht. Alles andere steht im Text.
@@ -92,7 +99,7 @@ Repositories Versionen tragen. Werkzeugnamen stehen ohne Präfix; auf der Anlage
   werden per Repo/Pfad referenziert. Gibt es dort noch keins, beschreibt das Rezept die
   Schritte als **Vertrag** (Schritt · Eingabe · Ausgabe · Invarianten) und legt keinen
   eigenen Code bei.
-  Ausnahme ist die lokale Baulogik des Build-Rezepts aus §2; die Prüfregeln und
+  Ausnahmen sind Build- und Skript-Rezept aus §2; die Prüfregeln und
   Beisteller des Läufers bleiben in `januaport-plugins` maßgeblich.
 - **Agenten-Anweisung** als reiner Text ohne Client-Syntax, Platzhalter in spitzen Klammern.
   Sie trägt die harten Regeln des Rezepts, vor allem die Freigabe durch den Menschen.
