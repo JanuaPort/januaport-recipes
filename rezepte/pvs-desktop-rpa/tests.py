@@ -173,6 +173,15 @@ class AnnahmeTests(unittest.TestCase):
                 self.assertEqual(annahme(mock, nur_melden=False), {"codes": {code: 1}})
                 self.assertEqual(mock.angenommen, set())
 
+    def test_einzelner_eintrag_haelt_den_takt_nicht_an(self):
+        for modus, code in (("gesperrt", "gesperrt"), ("halb", "zeitlimit")):
+            with self.subTest(modus=modus):
+                mock = MockAdapter([befund(vollstaendig=modus != "halb"), befund(kennung=ANDERE)])
+                if modus == "gesperrt":
+                    mock.gesperrt.add(KENNUNG)
+                self.assertEqual(annahme(mock, nur_melden=False), {"codes": {code: 1, "angenommen": 1}})
+                self.assertEqual(mock.annahme_aufrufe, [ANDERE])
+
     def test_verzoegert_aber_rechtzeitig(self):
         mock = MockAdapter([befund()])
         mock.verzoegerung["lese_anmeldung"] = 0.5
@@ -330,7 +339,7 @@ class AnsichtTests(unittest.TestCase):
             if adapter.ui_schritte:
                 adapter.dialog = True
         mock.vor_zeige = wechsel
-        self.assertEqual(ansicht(mock), {"codes": {"geoeffnet": 1, "dialog": 1}})
+        self.assertEqual(ansicht(mock), {"codes": {"geoeffnet": 1, "teilweise": 1, "dialog": 1}})
         self.assertEqual(len(mock.ui_schritte), 1)
 
     def test_fehlender_monitor_oder_ungueltige_dpi(self):
@@ -373,7 +382,7 @@ class GrenzenTests(unittest.TestCase):
         self.assertEqual({c.value for c in Code}, {
             "angenommen", "wuerde_annehmen", "kein_termin", "quartal_erst", "abweichung",
             "neu", "karte", "schon_erledigt", "doppelt", "kostentraeger", "unbekannt",
-            "gesperrt", "geoeffnet", "kein_patient", "mehrdeutig", "programm_fehlt",
+            "gesperrt", "geoeffnet", "teilweise", "kein_patient", "mehrdeutig", "programm_fehlt",
             "pvs_nicht_bereit", "dialog", "zeitlimit", "intern",
         })
 

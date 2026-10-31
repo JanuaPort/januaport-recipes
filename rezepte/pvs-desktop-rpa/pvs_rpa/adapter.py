@@ -14,6 +14,8 @@ from typing import Protocol
 from .codes import Code
 
 ZEITLIMIT_S = 5.0
+# Wartegrenze für einen einzelnen halb geladenen Eintrag, damit die übrigen Einträge noch drankommen.
+EINTRAG_WARTEN_S = 1.0
 
 
 @dataclass(frozen=True, slots=True)

@@ -4,7 +4,7 @@ from dataclasses import fields
 from time import monotonic
 from typing import Callable
 
-from .adapter import Anmeldung, PVSAdapter, ZEITLIMIT_S, Zeitlimit, fehlercode
+from .adapter import Anmeldung, Gesperrt, PVSAdapter, ZEITLIMIT_S, Zeitlimit, fehlercode
 from .codes import Code, zaehle
 
 
@@ -39,6 +39,22 @@ def bewerten(eintrag: Anmeldung | None, kennung: str, quartal_annehmen: bool) ->
     return Code.ANGENOMMEN
 
 
+def _eintrag(adapter: PVSAdapter, kennung: str, deadline: float, nur_melden: bool,
+             quartal_annehmen: bool, uhr: Callable[[], float]) -> Code:
+    eintrag = adapter.lese_anmeldung(kennung, deadline)
+    code = bewerten(eintrag, kennung, quartal_annehmen)
+    if code != Code.ANGENOMMEN:
+        return code
+    if nur_melden:
+        return Code.WUERDE_ANNEHMEN
+    if uhr() >= deadline:
+        raise Zeitlimit
+    code = adapter.annehmen(kennung, eintrag, deadline)
+    if type(code) is not Code or code not in (Code.ANGENOMMEN, Code.SCHON_ERLEDIGT, Code.UNBEKANNT):
+        raise ValueError
+    return code
+
+
 def run_annahme(adapter: PVSAdapter, *, nur_melden: bool = True,
                 quartal_annehmen: bool = False, uhr: Callable[[], float] = monotonic) -> dict:
     ergebnis = {"codes": {}}
@@ -59,17 +75,11 @@ def run_annahme(adapter: PVSAdapter, *, nur_melden: bool = True,
                 zaehle(ergebnis, Code.DOPPELT)
                 continue
             gesehen.add(kennung)
-            eintrag = adapter.lese_anmeldung(kennung, deadline)
-            code = bewerten(eintrag, kennung, quartal_annehmen)
-            if code == Code.ANGENOMMEN:
-                if nur_melden:
-                    code = Code.WUERDE_ANNEHMEN
-                else:
-                    if uhr() >= deadline:
-                        raise Zeitlimit
-                    code = adapter.annehmen(kennung, eintrag, deadline)
-                    if type(code) is not Code or code not in (Code.ANGENOMMEN, Code.SCHON_ERLEDIGT, Code.UNBEKANNT):
-                        raise ValueError
+            try:
+                code = _eintrag(adapter, kennung, deadline, nur_melden, quartal_annehmen, uhr)
+            except (Gesperrt, Zeitlimit) as fehler:
+                # Ein einzelner gesperrter oder halber Eintrag bleibt liegen; sonst endete jeder Takt an ihm.
+                code = fehlercode(fehler, annahme=True)
             zaehle(ergebnis, code)
     except BaseException as fehler:
         zaehle(ergebnis, fehlercode(fehler, annahme=True))

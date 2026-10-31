@@ -2,7 +2,7 @@
 
 from dataclasses import replace
 
-from .adapter import (Anmeldung, Dialog, Gesperrt, KontextGewechselt, NichtBereit,
+from .adapter import (EINTRAG_WARTEN_S, Anmeldung, Dialog, Gesperrt, KontextGewechselt, NichtBereit,
                       ProgrammFehlt, Zeitlimit, Ziel)
 from .codes import Code
 
@@ -68,7 +68,7 @@ class MockAdapter:
             raise Gesperrt
         eintrag = self.eintraege.get(kennung)
         if eintrag is not None and eintrag.vollstaendig is False:
-            self.zeit = deadline
+            self.zeit = min(deadline, self.zeit + EINTRAG_WARTEN_S)
             raise Zeitlimit
         if self.nach_lesen is not None:
             self.nach_lesen(self, kennung)

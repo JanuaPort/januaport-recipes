@@ -23,6 +23,9 @@ PROBEN = [
     ("d-unbekannt-annehmen", "pvs_rpa.kern_annahme",
      "if not eintrag.kategorie_bekannt:\n        return Code.UNBEKANNT",
      "if not eintrag.kategorie_bekannt:\n        return Code.ANGENOMMEN"),
+    ("e-eintrag-haelt-takt-an", "pvs_rpa.kern_annahme",
+     "except (Gesperrt, Zeitlimit) as fehler:", "except () as fehler:"),
+    ("f-teilweise-verschwiegen", "pvs_rpa.kern_ansicht", "if gezeigt:", "if False:"),
 ]
 
 

@@ -18,6 +18,7 @@ class Code(str, Enum):
     UNBEKANNT = "unbekannt"
     GESPERRT = "gesperrt"
     GEOEFFNET = "geoeffnet"
+    TEILWEISE = "teilweise"
     KEIN_PATIENT = "kein_patient"
     MEHRDEUTIG = "mehrdeutig"
     PROGRAMM_FEHLT = "programm_fehlt"

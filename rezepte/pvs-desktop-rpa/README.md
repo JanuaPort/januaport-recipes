@@ -72,7 +72,10 @@ Es gibt keinen Geld-Schritt. Lizenzfreigabe und Betriebsfreigabe liegen beim Bet
 Keine Integration, keine Kartei-Satzart, kein zusätzlicher Beisteller. Ein
 Adapter erhält für jede Methode dieselbe absolute monotone Deadline: **5 Sekunden
 für den ganzen Lauf**. Er muss auch eigene UI-Warteoperationen begrenzen; der
-Fachkern kann einen blockierenden Fremdadapter nicht unterbrechen.
+Fachkern kann einen blockierenden Fremdadapter nicht unterbrechen. Ein einzelner halb
+geladener Eintrag wartet höchstens 1 Sekunde, damit die übrigen noch drankommen.
+**Offen für Sprint 1:** 5 Sekunden sind für ein echtes PVS zu knapp. Als Platzhalter
+gelten etwa 40 Sekunden für UC1 und etwa 20 Sekunden für UC2; die Werte legt die Abnahme fest.
 
 Patienten werden ausschließlich über `kennung` identifiziert. Namen und
 Geburtsjahre sind kein Teil der Schnittstelle; sie existieren nur als erkennbar
@@ -144,8 +147,9 @@ aus festen Codes und nichtnegativen ganzzahligen Zählern:
 ```
 
 UC1 verwendet die Tabellen-Codes sowie `dialog`, `pvs_nicht_bereit`, `zeitlimit`
-und `intern`. UC2 verwendet `geoeffnet`, `kein_patient`, `mehrdeutig`,
+und `intern`. UC2 verwendet `geoeffnet`, `teilweise`, `kein_patient`, `mehrdeutig`,
 `programm_fehlt`, `pvs_nicht_bereit`, `dialog`, `zeitlimit`, `intern`.
+`teilweise` steht zusätzlich zum Fehlercode, wenn schon ein Detailprogramm umgeschaltet war.
 `geoeffnet` zählt erfolgreich eingerichtete Detailprogramme (normal 2).
 Nach Teilwirkung bleiben die bestätigten Zähler neben dem Fehlercode erhalten.
 Die gesamte geschlossene Menge steht in `codes.py`. Unerwartete Ausnahmen
@@ -251,7 +255,9 @@ Direkte Demo unter PowerShell, nur mit dem eingebauten synthetischen Mock:
 |---|---|---|
 | Fenster lädt zu lange oder bleibt halb gefüllt | gemeinsame Deadline, unvollständige Fakten | `zeitlimit`, keine weitere Wirkung; Mensch |
 | unerwarteter Dialog | typisiertes Adapter-Signal | `dialog`, stehen lassen; Mensch |
-| Datensatz gesperrt | frische Sperrprüfung vor Lesen und Wirkung | `gesperrt`, liegen lassen; Mensch |
+| Datensatz gesperrt | frische Sperrprüfung vor Lesen und Wirkung | `gesperrt`, nur dieser Eintrag bleibt liegen, die übrigen laufen weiter; Mensch |
+| einzelner Eintrag bleibt halb gefüllt | Wartegrenze je Eintrag (1 s im Vorbau) | `zeitlimit` für diesen Eintrag, die übrigen laufen weiter; Mensch |
+| UC2: ein Monitor umgeschaltet, dann Abbruch | Zähler der Wirkungen | `teilweise` plus Fehlercode, kein zweiter Versuch; **beide Monitore prüfen**, ein Monitor zeigt noch den vorigen Patienten; Mensch |
 | PVS nicht gestartet, Anmeldemaske, Sitzung gesperrt | Bereitschaftsprüfung | `pvs_nicht_bereit`, keine Selbstanmeldung; Mensch |
 | kein oder mehrere Patienten offen | Anzahl eindeutiger Kennungen | `kein_patient` / `mehrdeutig`, keine UI-Wirkung; Mensch |
 | Detailprogramm fehlt | Vorprüfung beider Ziele | `programm_fehlt`, kein Start; Mensch |

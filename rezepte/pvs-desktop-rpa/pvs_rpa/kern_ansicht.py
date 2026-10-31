@@ -17,6 +17,7 @@ SETUPS = MappingProxyType({
 
 def run_ansicht(adapter: DesktopAdapter, setup: str, *, uhr: Callable[[], float] = monotonic) -> dict:
     ergebnis = {"codes": {}}
+    gezeigt = 0
     try:
         if type(setup) is not str or setup not in SETUPS:
             raise ValueError
@@ -39,7 +40,11 @@ def run_ansicht(adapter: DesktopAdapter, setup: str, *, uhr: Callable[[], float]
             if uhr() >= deadline:
                 raise Zeitlimit
             adapter.zeige(kennung, ziel, deadline)
+            gezeigt += 1
             zaehle(ergebnis, Code.GEOEFFNET)
     except BaseException as fehler:
+        if gezeigt:
+            # Ein Monitor zeigt schon den neuen, der andere noch den vorigen Patienten.
+            zaehle(ergebnis, Code.TEILWEISE)
         zaehle(ergebnis, fehlercode(fehler, annahme=False))
     return ergebnis
