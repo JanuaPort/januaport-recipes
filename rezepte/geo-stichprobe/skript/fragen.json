@@ -1,0 +1,15 @@
+[
+  {"nr": 1, "frage": "Wie automatisiere ich eine Windows-Fachsoftware ohne Schnittstelle?"},
+  {"nr": 2, "frage": "Günstige Alternative zu klassischen RPA-Tools für kleine Unternehmen?"},
+  {"nr": 3, "frage": "Kann KI kaputte RPA-Bots reparieren?"},
+  {"nr": 4, "frage": "RPA-Skripte nach Windows-Update automatisch wieder starten?"},
+  {"nr": 5, "frage": "Python-Desktop-Automatisierung sicher im Unternehmen betreiben?"},
+  {"nr": 6, "frage": "MCP-Server für Google Analytics?"},
+  {"nr": 7, "frage": "Google Analytics sicher mit ChatGPT oder Claude verbinden?"},
+  {"nr": 8, "frage": "KI in Google Analytics schreiben lassen, ohne alles zu dürfen?"},
+  {"nr": 9, "frage": "Google Analytics mit KI auswerten?"},
+  {"nr": 10, "frage": "MCP-Server für die Google Search Console?"},
+  {"nr": 11, "frage": "Search Console sicher mit ChatGPT oder Claude verbinden?"},
+  {"nr": 12, "frage": "KI in der Search Console schreiben lassen, ohne alles zu dürfen?"},
+  {"nr": 13, "frage": "Kann eine KI eine Sitemap bei der Search Console einreichen?"}
+]

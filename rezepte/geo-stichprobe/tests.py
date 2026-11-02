@@ -4,10 +4,14 @@ from datetime import datetime, timezone
 import importlib
 import io
 import json
+import os
 from pathlib import Path
 import re
 import runpy
 import sys
+import socket
+import struct
+import subprocess
 import types
 import unittest
 from unittest.mock import patch
@@ -69,6 +73,8 @@ def einstieg(eingabe, reply=None, fake=None):
             runpy.run_path(str(SKRIPT / "main.py"), run_name="__main__")
         except SystemExit as exc:
             code = exc.code
+        except Exception as exc:
+            raise AssertionError("Skript-Einstieg muss kontrolliert enden: " + type(exc).__name__) from None
         else:
             code = 0
     return fake, json.loads(out.getvalue()), err.getvalue(), code
@@ -115,14 +121,39 @@ class Vertrag(unittest.TestCase):
             self.assertEqual(self.kern.bewerten("openai", {"structuredContent": daten}),
                              {"genannt": False, "zitiert": False})
 
+    def test_quellen_verbotene_hostformen_am_einstieg(self):
+        for m, url, title in [
+            ("openai", "https://example.com/?q=januaport.ai", "januaport.ai"),
+            ("openai", "https://januaport.ai@example.com/", "januaport.ai"),
+            ("openai", "https://beispiel@januaport.ai/", "januaport.ai"),
+            ("gemini", "https://example.com/", "example.com/januaport.ai"),
+            ("gemini", "https://example.com/", "a@www.januaport.ai"),
+            ("openai", "ftp://januaport.ai/", "januaport.ai"),
+            ("openai", "https://januaport.ai/\n" + KANARIE, "januaport.ai"),
+            ("openai", "https://[kaputt/", "januaport.ai"),
+        ]:
+            with self.subTest(m=m, url=url, title=title):
+                fake, out, _, _ = einstieg({"maschine": m}, lambda *_: antwort("", url, title))
+                saetze = [a for t, a in fake.aufrufe if t.endswith("_add")]
+                self.assertTrue(all(not s.get("zitiert", False) for s in saetze))
+                self.assertTrue(all("quellen_januaport" not in s for s in saetze))
+                self.assertNotIn(KANARIE, json.dumps([saetze, out, fake.logs]))
+
     def test_ungueltige_struktur_am_einstieg(self):
         kaputt = [None, [], {}, {"structuredContent": {}},
                   {"structuredContent": {"text": 42, "quellen": []}},
+                  {"structuredContent": []},
                   {"structuredContent": {"text": "", "quellen": {}}},
                   {"structuredContent": {"text": "", "quellen": [None]}},
                   {"structuredContent": {"text": "", "quellen": [{"url": 42, "title": ""}]}},
                   {"structuredContent": {"text": "", "quellen": [{"url": ""}]}},
                   {"content": [{"type": "text", "text": "kein JSON " + KANARIE}]},
+                  {"content": "kein Block"},
+                  {"content": []},
+                  {"content": [42]},
+                  {"content": [{"type": "image", "text": "{}"}]},
+                  {"content": [{"type": "image", "text": json.dumps({"text": "", "quellen": []})}]},
+                  {"content": [{"type": "text", "text": 42}]},
                   {"isError": True, "content": [{"text": KANARIE}]},
                   {"structuredContent": {}, "content": antwort(textblock=True)["content"]}]
         for reply in kaputt:
@@ -135,17 +166,51 @@ class Vertrag(unittest.TestCase):
                 self.assertEqual(out["openai"]["fehler"], 13)
                 self.assertNotIn(KANARIE, json.dumps([out, fake.logs, saetze, err]))
 
+    def test_strukturtyp_wird_vor_bewertung_abgewiesen(self):
+        for result in [
+            {"structuredContent": {"text": 42, "quellen": []}},
+            {"structuredContent": {"text": "", "quellen": [{"url": 42, "title": "x"}]}},
+            {"structuredContent": {"text": "", "quellen": [None]}},
+        ]:
+            with self.subTest(result=result):
+                try:
+                    self.kern.bewerten("openai", result)
+                except Exception as exc:
+                    self.assertIsInstance(exc, ValueError)
+                else:
+                    self.fail("Kaputte Struktur akzeptiert")
+
     def test_ungueltige_eingabe_keine_aufrufe(self):
         for eingabe in [None, [], "text", {"extra": True}, {"maschine": "fremd"},
                         {"maschine": None}, {"maschine": []}, {"anlass": 1},
                         {"anlass": "x" * 121}, {"anlass": "beliebig"},
                         {"anlass": "T+28: "}, {"anlass": "T+28: a\nb"},
-                        {"team": 42}, {"team": ""}]:
+                        {"team": 42}, {"team": ""}, {"team": " "}]:
             with self.subTest(eingabe=eingabe):
                 fake, out, err, code = einstieg(eingabe)
                 self.assertEqual(fake.aufrufe, [])
                 self.assertEqual(out, {"fehler": "eingabe_ungueltig"})
                 self.assertNotEqual(code, 0)
+
+    def test_grenzwerte_und_utc(self):
+        fake = Fake({})
+        zeit = datetime.fromisoformat("2026-01-02T00:30:00+02:00")
+        self.kern.ausfuehren({"maschine": "openai", "anlass": "T+28: " + "a" * 114},
+                             [{"nr": 1, "frage": FRAGEN[0]}], fake.call, fake.log, lambda: zeit)
+        satz = fake.aufrufe[1][1]
+        self.assertEqual(satz["datum"], "2026-01-01")
+        self.assertEqual(satz["as_of"], "2026-01-01T22:30:00+00:00")
+        self.assertNotIn("team", satz)
+
+    def test_einstieg_schreibt_keine_dateien(self):
+        vorher = {p.relative_to(HERE): p.read_bytes() for p in HERE.rglob("*") if p.is_file()}
+        def verboten(*args, **kwargs):
+            raise AssertionError("Datei-Schreibzugriff im Lauf")
+        with patch("builtins.print", wraps=print), patch("pathlib.Path.write_text", verboten), \
+             patch("pathlib.Path.write_bytes", verboten):
+            einstieg({})
+        nachher = {p.relative_to(HERE): p.read_bytes() for p in HERE.rglob("*") if p.is_file()}
+        self.assertEqual(vorher, nachher)
 
     def test_datensparsam_und_ausgabe(self):
         for textblock in (False, True):
@@ -216,7 +281,7 @@ class Vertrag(unittest.TestCase):
 
     def test_quellen_nur_treffer_gekappt(self):
         quellen = [{"url": "https://januaport.ai/" + "a" * 1100, "title": "januaport.ai"},
-                   {"url": "https://example.com/" + KANARIE, "title": KANARIE}]
+                   {"url": "https://example.com/" + KANARIE, "title": "example.com"}]
         for m in ("openai", "gemini"):
             wert = self.kern.bewerten(m, {"structuredContent": {"text": "", "quellen": quellen}})
             self.assertTrue(wert["zitiert"])
@@ -241,6 +306,80 @@ class Vertrag(unittest.TestCase):
         self.assertEqual(set(re.findall(r"^  - (\w+)$", manifest, re.M)),
                          {"openai_websuche_ask", "gemini_websuche_ask", "geo_stichprobe_add"})
         self.assertIn("timeout_s: 600", manifest)
+
+
+@unittest.skipUnless(os.name == "posix" and os.environ.get("JANUAPORT_BOOTSTRAP"),
+                     "Optionaler Durchstich: echten Läufer-Bootstrap read-only bereitstellen")
+class EchterBootstrap(unittest.TestCase):
+    def test_echter_bootstrap_mit_fehlern_und_beiden_antwortwegen(self):
+        # Nur die entfernten Werkzeuge sind synthetisch; SDK, Rahmung und Einstieg sind echt.
+        for eingabe in ({}, {"maschine": "fremd"}):
+            with self.subTest(eingabe=eingabe):
+                parent, child = socket.socketpair()
+                parent.settimeout(15)
+                wrapper = "import os,sys; os.dup2(int(sys.argv[1]),3); os.execv(sys.executable,[sys.executable,'-I','-B',*sys.argv[2:]])"
+                proc = subprocess.Popen([sys.executable, "-I", "-B", "-c", wrapper,
+                                         str(child.fileno()), os.environ["JANUAPORT_BOOTSTRAP"],
+                                         str(SKRIPT), "main.py"], pass_fds=(child.fileno(),),
+                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                child.close()
+                logs, saetze, ask = [], [], 0
+                def recv_exact(n):
+                    buf = b""
+                    while len(buf) < n:
+                        part = parent.recv(n - len(buf))
+                        if not part:
+                            raise EOFError
+                        buf += part
+                    return buf
+                try:
+                    proc.stdin.write(json.dumps(eingabe).encode())
+                    proc.stdin.close()
+                    while True:
+                        try:
+                            msg = json.loads(recv_exact(struct.unpack(">I", recv_exact(4))[0]))
+                        except EOFError:
+                            break
+                        if msg["type"] == "log":
+                            logs.append(msg["data"])
+                            continue
+                        self.assertEqual(msg["type"], "tool_call")
+                        if msg["name"].endswith("_ask"):
+                            ask += 1
+                            reply = antwort(KANARIE + " JanuaPort", "https://januaport.ai/", "januaport.ai", ask % 2 == 0)
+                            if ask == 1:
+                                reply = {"isError": True, "content": [{"type": "text", "text": KANARIE}]}
+                        else:
+                            self.assertEqual(msg["name"], "geo_stichprobe_add")
+                            saetze.append(msg["arguments"])
+                            reply = {"content": []}
+                            if len(saetze) == 1:
+                                reply = {"isError": True, "content": [{"type": "text", "text": KANARIE}]}
+                        body = json.dumps({"type": "tool_result", "id": msg["id"], "result": reply}).encode()
+                        parent.sendall(struct.pack(">I", len(body)) + body)
+                    proc.wait(timeout=15)
+                    out, err = proc.stdout.read().decode(), proc.stderr.read().decode()
+                    self.assertNotIn(KANARIE, json.dumps([out, err, logs, saetze]))
+                    if eingabe:
+                        self.assertEqual(ask, 0)
+                        self.assertEqual(saetze, [])
+                        self.assertEqual(json.loads(out), {"fehler": "eingabe_ungueltig"})
+                        self.assertEqual(proc.returncode, 1)
+                    else:
+                        self.assertEqual(ask, 26)
+                        self.assertEqual(len(saetze), 26)
+                        self.assertEqual(proc.returncode, 0)
+                        self.assertEqual(json.loads(out)["openai"], {"genannt": 12, "zitiert": 12, "fehler": 1})
+                        self.assertNotIn("genannt", saetze[0])
+                        self.assertNotIn("zitiert", saetze[0])
+                        self.assertIn("speichern_fehlgeschlagen", "".join(logs))
+                finally:
+                    parent.close()
+                    if proc.poll() is None:
+                        proc.kill()
+                        proc.wait(timeout=5)
+                    for stream in (proc.stdin, proc.stdout, proc.stderr):
+                        stream.close()
 
 
 if __name__ == "__main__":
