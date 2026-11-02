@@ -28,6 +28,7 @@ Every recipe states its status honestly, in three levels: **thought through** (w
 
 | Recipe | Goal | Status |
 |---|---|---|
+| [`rezepte/geo-stichprobe`](rezepte/geo-stichprobe/README.md) | Measure mentions and citations of januaport.ai across 13 fixed questions in two AI search tools; store only a trend signal. | **Thought through.** Stage 2; synthetic tests pass, connector templates and installation acceptance pending. |
 | [`rezepte/pvs-desktop-rpa`](rezepte/pvs-desktop-rpa/README.md) | Prepare PVS reception and two monitor views with a Python core, synthetic mock and offline tests. | **Thought through.** Real adapter and runner result handoff pending. |
 | [`rezepte/python-bibliotheken-bauen`](rezepte/python-bibliotheken-bauen/README.md) | Build Python 3.12 wheels and a hash lock from a short requirements.in, check them and propose a PR in the operator repository. | **Thought through.** Stage 2, under construction until merged; installation evidence pending, including Windows desktop pins. |
 | [`rezepte/zahlungseingang`](rezepte/zahlungseingang/REZEPT.md) | The AI matches incoming payments from the bank statement to documents, a human approves each case, a robot books them in a business system that has no interface. | **Tried.** Ran at a pilot customer against real operations; acceptance is pending. The published record type, instruction and robot scripts were rewritten for publication. |
