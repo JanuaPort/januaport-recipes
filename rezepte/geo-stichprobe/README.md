@@ -98,9 +98,15 @@ mit Wortgrenzen. `januaport.ai`, `www.januaport.ai` und `JanuaPort` zählen;
 `nichtjanuaport` und `januaportal` zählen nicht. `zitiert` verlangt den Host
 `januaport.ai` oder ein Suffix `.januaport.ai`. `januaport.ai.evil.example`
 und `nichtjanuaport.ai` zählen nicht. OpenAI liefert die echte URL; der Host
-wird daraus gelesen. Gemini liefert einen Google-Umleitungslink, und **nur `title`
-als Domain** wird bewertet. Ein Domainwort im Query des Umleitungslinks zählt nicht.
-URL-Zugangsdaten, Steuerzeichen und kaputte Hostformen werden abgewiesen.
+wird daraus gelesen. Gemini liefert einen Google-Umleitungslink; `title` trägt
+meist die Domain. **Nur ein als Domain lesbarer `title`** wird bewertet.
+Ein Domainwort im Query des Umleitungslinks zählt nicht. Einzelne Quellen mit
+Seitentiteln statt Domains, kaputten Hostformen oder OpenAI-URLs ohne HTTP(S)-Schema,
+mit Leer-/Steuerzeichen oder Zugangsdaten werden still als Nichttreffer übersprungen.
+Andere Quellen derselben Antwort bleiben auswertbar. Sind alle Quellen ungültig,
+ist `zitiert=false`; `genannt` wird weiterhin am Text gemessen. Das ist kein
+Messfehler. `antwort_unlesbar` bleibt kaputten Antwortstrukturen vorbehalten
+(fehlende Pflichtfelder, falsche Typen oder MCP-Fehler).
 
 Die Satzart hat neun Felder: `lauf`, `datum`, `anlass`, `maschine`, `frage_nr`,
 `genannt`, `zitiert`, `quellen_januaport`, `fehler`. Die ersten fünf sind Pflicht
@@ -241,7 +247,8 @@ neu bestätigen; der Live-Zeiger bestätigt die Bindung nicht automatisch.
 |---|---|---|
 | Ungültige Eingabe | lokale Prüfung, zusätzlich Manifest-Schema | `eingabe_ungueltig`, kein Aufruf; Inbound-KI korrigiert |
 | ask-Exception, einschließlich SDK-ToolError | Ausnahme ohne Übernahme des Texts | Satz mit `aufruf_fehlgeschlagen`, ohne Booleans; Admin prüft Zugang/Budget |
-| Fehlende/kaputte Antwortstruktur oder URL | Typ-/Strukturprüfung | Satz mit `antwort_unlesbar`, ohne Booleans; Vorlagen-Verantwortlicher prüft Vertrag |
+| Fehlende/kaputte Antwortstruktur | Typ-/Strukturprüfung | Satz mit `antwort_unlesbar`, ohne Booleans; Vorlagen-Verantwortlicher prüft Vertrag |
+| Einzelne Quelle kein Host / keine gültige URL | Quellenprüfung | still überspringen, übrige Quellen und Text bewerten; ohne Treffer `zitiert=false`, kein Fehlercode |
 | `_add` scheitert | Exception oder MCP-isError | `speichern_fehlgeschlagen` im Log, Fehlerzähler erhöhen, nächste Frage; Admin prüft Kartei/Rechte/Deckel |
 | Laufzeit-/Aufruflimit, Abbruch oder busy | technischer Laufabschluss/Audit | Teilbestand anhand erwarteter 13 Sätze prüfen; Mensch entscheidet Wiederholung |
 | Fassung oder Rechte geändert | pausierter Zeitplan / abgewiesener Start | Admin prüft und bestätigt Bindung bewusst neu |
@@ -258,7 +265,10 @@ stehen im Zähler und, bei erfolgreichem `_add`, im Messsatz.
 - [x] Kanarien-Antworten und Ausnahmetexte bleiben aus Kartei, stdout/stderr und Log;
   Booleans fehlen bei Ausfall, Satzart und geschriebene Felder stimmen überein.
 - [x] Beide MCP-Antwortwege, Fortsetzen nach Mess-/Schreibfehlern, keine Schreib-Retries,
-  UTC und Quellenkappung geprüft. 30/30 Mutationen rot, Original grün.
+  UTC und Quellenkappung geprüft. 31/31 Mutationen rot, Original grün.
+- [x] Ungültige Einzelquellen verdecken keine gültigen Treffer; auch ausschließlich
+  ungültige Quellen sind keine Messfehler. Zugangsdaten-URLs bleiben aus der Ablage.
+  Die Mutation „ungültige Quelle wirft wieder“ wird erkannt.
 - [x] `lauf` ist bei fortschreitender Uhr und Tageswechsel in allen 26 Sätzen gleich;
   zwei verschiedene Startzeitpunkte liefern verschiedene Kennungen. Pflichtfeld,
   Filter und Feldabgleich geprüft; Neubildung je Satz wird als Mutation erkannt.

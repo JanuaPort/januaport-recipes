@@ -137,7 +137,46 @@ class Vertrag(unittest.TestCase):
                 saetze = [a for t, a in fake.aufrufe if t.endswith("_add")]
                 self.assertTrue(all(not s.get("zitiert", False) for s in saetze))
                 self.assertTrue(all("quellen_januaport" not in s for s in saetze))
+                self.assertTrue(all(s.get("genannt") is False and "fehler" not in s for s in saetze))
+                self.assertEqual(out[m]["fehler"], 0)
                 self.assertNotIn(KANARIE, json.dumps([saetze, out, fake.logs]))
+
+    def test_ungueltige_quellen_sind_keine_messfehler_am_einstieg(self):
+        for maschine, url, title in [
+            ("gemini", "https://example.com/redirect", "Some Page Title"),
+            ("gemini", "https://example.com/redirect", "a@www.januaport.ai"),
+            ("openai", "nicht-url", "Some Page Title"),
+            ("openai", "januaport.ai/x", "januaport.ai"),
+            ("openai", "https://januaport.ai/x y", "januaport.ai"),
+            ("openai", "https://u:p@januaport.ai", "januaport.ai"),
+            ("openai", "https://[kaputt/", "januaport.ai"),
+            ("openai", "ftp://januaport.ai/x", "januaport.ai"),
+        ]:
+            ungueltig = {"url": url, "title": title}
+            gueltig = {"url": "https://januaport.ai/x", "title": "januaport.ai"}
+            for quellen in ([ungueltig], [ungueltig, gueltig], [gueltig, ungueltig]):
+                for textblock in (False, True):
+                    with self.subTest(maschine=maschine, quellen=quellen, textblock=textblock):
+                        daten = {"text": "JanuaPort " + KANARIE, "quellen": quellen}
+                        reply = ({"content": [{"type": "text", "text": json.dumps(daten)}]}
+                                 if textblock else {"structuredContent": daten})
+                        fake, out, err, code = einstieg({"maschine": maschine}, lambda *_: reply)
+                        saetze = [a for t, a in fake.aufrufe if t.endswith("_add")]
+                        zitiert = len(quellen) == 2
+                        self.assertEqual(code, 0)
+                        self.assertEqual(len(saetze), 13)
+                        self.assertEqual(out[maschine], {"genannt": 13, "zitiert": 13 if zitiert else 0, "fehler": 0})
+                        for satz in saetze:
+                            self.assertNotIn("fehler", satz)
+                            self.assertIs(satz["genannt"], True)
+                            self.assertIs(satz["zitiert"], zitiert)
+                            if zitiert:
+                                self.assertEqual(satz["quellen_januaport"],
+                                                 "januaport.ai" if maschine == "gemini" else gueltig["url"])
+                            else:
+                                self.assertNotIn("quellen_januaport", satz)
+                        self.assertEqual([json.loads(x) for x in fake.logs], [out])
+                        self.assertNotIn(KANARIE, json.dumps([saetze, out, fake.logs, err]))
 
     def test_ungueltige_struktur_am_einstieg(self):
         kaputt = [None, [], {}, {"structuredContent": {}},
@@ -369,6 +408,11 @@ class EchterBootstrap(unittest.TestCase):
                         if msg["name"].endswith("_ask"):
                             ask += 1
                             reply = antwort(KANARIE + " JanuaPort", "https://januaport.ai/", "januaport.ai", ask % 2 == 0)
+                            daten = (reply["structuredContent"] if ask % 2 else
+                                     json.loads(reply["content"][0]["text"]))
+                            daten["quellen"].insert(0, {"url": "nicht-url", "title": "Some Page Title"})
+                            if ask % 2 == 0:
+                                reply["content"][0]["text"] = json.dumps(daten)
                             if ask == 1:
                                 reply = {"isError": True, "content": [{"type": "text", "text": KANARIE}]}
                         else:
@@ -395,6 +439,7 @@ class EchterBootstrap(unittest.TestCase):
                         self.assertRegex(laufkennungen.pop() or "", r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
                         self.assertEqual(proc.returncode, 0)
                         self.assertEqual(json.loads(out)["openai"], {"genannt": 12, "zitiert": 12, "fehler": 1})
+                        self.assertEqual(json.loads(out)["gemini"], {"genannt": 13, "zitiert": 13, "fehler": 0})
                         self.assertNotIn("genannt", saetze[0])
                         self.assertNotIn("zitiert", saetze[0])
                         self.assertIn("speichern_fehlgeschlagen", "".join(logs))

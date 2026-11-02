@@ -31,6 +31,9 @@ Vergleiche monatlich und bei T+28 mit dem
 vorigen passenden Messzeitpunkt, nur bei gleicher Fragenliste und Fassung.
 Zähle genannt=true, zitiert=true und fehler je Maschine von 13; nenne zusätzlich
 die Zahl gültiger Messungen. Fehlende Booleans sind Ausfälle, keine false-Werte.
+Einzelne ungültige Quellwerte werden still übersprungen und sind keine Ausfälle;
+andere Quellen derselben Antwort zählen weiter. Nur ungültige Quellen ergeben
+zitiert=false; genannt wird weiterhin am Antworttext gemessen.
 Die Ausgabe zählt auch fehlgeschlagene Speicherungen; gleiche sie mit Bestand
 und technischem Abschluss ab. Laufzeitlimit kann einen Teilbestand hinterlassen:
 13 Aufrufe à bis 90 s passen nicht garantiert in 600 s.

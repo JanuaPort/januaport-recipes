@@ -60,7 +60,7 @@ def antwort_lesen(result):
 def ziel_host(host):
     host = host.lower()
     if not re.fullmatch(r"[a-z0-9-]+(?:\.[a-z0-9-]+)*", host):
-        raise ValueError("antwort_unlesbar")
+        return False
     return host == ZIEL_DOMAIN or host.endswith("." + ZIEL_DOMAIN)
 
 
@@ -76,16 +76,16 @@ def bewerten(maschine, result):
         else:
             url = quelle["url"]
             if any(ord(c) <= 32 or ord(c) == 127 for c in url):
-                raise ValueError("antwort_unlesbar")
+                continue
             try:
                 parsed = urlsplit(url)
                 host = parsed.hostname or ""
             except ValueError:
-                raise ValueError("antwort_unlesbar") from None
+                continue
             if parsed.scheme not in ("http", "https") or not host:
-                raise ValueError("antwort_unlesbar")
+                continue
             if parsed.username is not None or parsed.password is not None:
-                raise ValueError("antwort_unlesbar")
+                continue
             wert = url
         if ziel_host(host):
             treffer.append(wert)

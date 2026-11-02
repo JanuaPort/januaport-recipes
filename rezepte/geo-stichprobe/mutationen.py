@@ -10,6 +10,8 @@ import sys
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 PROBEN = [
+    ("ungueltige-quelle-wirft-wieder", "stichprobe", "return False",
+     'raise ValueError("antwort_unlesbar")'),
     ("lauf-je-satz-neu", "stichprobe", '"lauf": lauf,',
      '"lauf": zeit.isoformat(timespec="seconds").replace("+00:00", "Z"),'),
     ("a-teilstring-statt-hostsuffix", "stichprobe",
