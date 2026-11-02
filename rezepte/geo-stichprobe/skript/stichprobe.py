@@ -98,13 +98,15 @@ def bewerten(maschine, result):
 def ausfuehren(eingabe, fragen, call, log, jetzt=None):
     """Je Frage ask → bewerten → add. Fehlerzähler zählt betroffene Fragen (max. 13)."""
     anlass, maschinen = eingabe_pruefen(eingabe)
+    uhr = jetzt or (lambda: datetime.now(timezone.utc))
+    lauf = uhr().astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     ergebnis = {}
     for maschine in maschinen:
         zaehler = {"genannt": 0, "zitiert": 0, "fehler": 0}
         ergebnis[maschine] = zaehler
         for frage in fragen:
-            zeit = (jetzt or (lambda: datetime.now(timezone.utc)))().astimezone(timezone.utc)
-            satz = {"datum": zeit.date().isoformat(), "anlass": anlass,
+            zeit = uhr().astimezone(timezone.utc)
+            satz = {"lauf": lauf, "datum": zeit.date().isoformat(), "anlass": anlass,
                     "maschine": maschine, "frage_nr": frage["nr"],
                     "source": "script geo_stichprobe", "as_of": zeit.isoformat()}
             if "team" in eingabe:

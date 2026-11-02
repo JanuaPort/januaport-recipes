@@ -7,6 +7,11 @@ description: >-
   und Maschine. Misst Nennung und Quellenverweis auf januaport.ai, bildet keine
   Verbraucher-App ab. Fehlende Messwerte sind Ausfälle, keine negativen Treffer.
 fields:
+  - name: lauf
+    description: UTC-Startzeit des Laufs in Sekunden (JJJJ-MM-TTThh:mm:ssZ), einmal je Lauf gebildet und für alle Sätze gleich; ohne Personenbezug.
+    type: string
+    required: true
+    filter: true
   - name: datum
     description: Messtag in UTC, JJJJ-MM-TT.
     type: string

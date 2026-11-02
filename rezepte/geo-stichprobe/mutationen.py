@@ -10,6 +10,8 @@ import sys
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 PROBEN = [
+    ("lauf-je-satz-neu", "stichprobe", '"lauf": lauf,',
+     '"lauf": zeit.isoformat(timespec="seconds").replace("+00:00", "Z"),'),
     ("a-teilstring-statt-hostsuffix", "stichprobe",
      'host == ZIEL_DOMAIN or host.endswith("." + ZIEL_DOMAIN)', 'ZIEL_DOMAIN in host'),
     ("b-ausfall-als-false", "stichprobe", '{"fehler": "aufruf_fehlgeschlagen"}',

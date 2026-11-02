@@ -20,10 +20,14 @@ Wandzeit muss der Admin vorab prüfen. Beide Maschinen in einem Lauf brauchen
 52 Aufrufe und Kennung 2 mit ausreichend hohem Deckel.
 
 Werte ausschließlich über geo_stichprobe_search aus. Filtere nach UTC-Datum,
-Anlass und Maschine, setze limit 100. Bei Kappung je frage_nr 1 bis 13 einzeln
-suchen; bleibt eine Suche gekappt, als unvollständig melden. Die Kartei-Suche
-hat keinen offset. Prüfe je Maschine die eindeutigen frage_nr 1 bis 13. Dubletten und
-fehlende Nummern gesondert melden. Vergleiche monatlich und bei T+28 mit dem
+Anlass und Maschine, gruppiere nach lauf und suche zur Auswertung mit Filter
+lauf. Die Kennung ist die einmal gebildete UTC-Startzeit des Laufs in Sekunden,
+ohne Personenbezug. Zähle Wiederholungen getrennt; setze Teilbestände aus
+verschiedenen Läufen nicht zusammen. Setze limit 100. Bei Kappung je frage_nr
+1 bis 13 einzeln suchen; bleibt eine Suche gekappt, als unvollständig melden.
+Die Kartei-Suche hat keinen offset. Prüfe je Lauf und Maschine die eindeutigen
+frage_nr 1 bis 13. Dubletten und fehlende Nummern gesondert melden.
+Vergleiche monatlich und bei T+28 mit dem
 vorigen passenden Messzeitpunkt, nur bei gleicher Fragenliste und Fassung.
 Zähle genannt=true, zitiert=true und fehler je Maschine von 13; nenne zusätzlich
 die Zahl gültiger Messungen. Fehlende Booleans sind Ausfälle, keine false-Werte.

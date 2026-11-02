@@ -1,6 +1,6 @@
 """Synthetische Vertrags- und Verbotsproben am echten Skript-Einstieg."""
 from contextlib import redirect_stdout, redirect_stderr
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import importlib
 import io
 import json
@@ -21,7 +21,7 @@ HERE = Path(__file__).resolve().parent
 SKRIPT = HERE / "skript"
 sys.path.insert(0, str(SKRIPT))
 KANARIE = "KANARIENWORT_ANTWORT_1293"
-FELDER = {"datum", "anlass", "maschine", "frage_nr", "genannt", "zitiert",
+FELDER = {"lauf", "datum", "anlass", "maschine", "frage_nr", "genannt", "zitiert",
           "quellen_januaport", "fehler"}
 FRAGEN = [
     "Wie automatisiere ich eine Windows-Fachsoftware ohne Schnittstelle?",
@@ -200,7 +200,25 @@ class Vertrag(unittest.TestCase):
         satz = fake.aufrufe[1][1]
         self.assertEqual(satz["datum"], "2026-01-01")
         self.assertEqual(satz["as_of"], "2026-01-01T22:30:00+00:00")
+        self.assertEqual(satz.get("lauf"), "2026-01-01T22:30:00Z")
         self.assertNotIn("team", satz)
+
+    def test_lauf_startzeit_am_einstieg_einmal_fuer_alle_saetze(self):
+        # Sekundensprünge über Mitternacht erzwingen: keine Echtzeit-/Sleep-Abhängigkeit.
+        basis = datetime.fromisoformat("2026-11-01T23:59:55.987654+00:00")
+        laufkennungen = []
+        for start in (basis, basis + timedelta(minutes=10)):
+            with patch.object(self.kern, "datetime") as uhr:
+                uhr.now.side_effect = [start + timedelta(seconds=i) for i in range(100)]
+                fake, _, _, code = einstieg({})
+            saetze = [a for t, a in fake.aufrufe if t.endswith("_add")]
+            erwartet = start.isoformat(timespec="seconds").replace("+00:00", "Z")
+            self.assertEqual(code, 0)
+            self.assertEqual(len(saetze), 26)
+            self.assertEqual({s.get("lauf") for s in saetze}, {erwartet})
+            self.assertGreater(len({s["as_of"] for s in saetze}), 1)
+            laufkennungen.append(saetze[0]["lauf"])
+        self.assertNotEqual(*laufkennungen)
 
     def test_einstieg_schreibt_keine_dateien(self):
         vorher = {p.relative_to(HERE): p.read_bytes() for p in HERE.rglob("*") if p.is_file()}
@@ -296,6 +314,10 @@ class Vertrag(unittest.TestCase):
         # Absichtlich kleiner Leser für die feste YAML-Listenform; kein PyYAML im Skript.
         text = (HERE / "satzarten/geo_stichprobe.yaml").read_text(encoding="utf-8")
         self.assertEqual(set(re.findall(r"^  - name: (\w+)$", text, re.M)), FELDER)
+        lauf_feld = re.search(r"(?ms)^  - name: lauf\n(.*?)(?=^  - name:|\Z)", text)
+        self.assertIsNotNone(lauf_feld, "Pflichtfeld lauf fehlt")
+        for deklaration in ("type: string", "required: true", "filter: true"):
+            self.assertIn(deklaration, lauf_feld.group(1))
         self.assertNotRegex(text, r"(?m)^freigabe:")
         fake, _, _, _ = einstieg({"maschine": "openai"}, lambda *_: antwort("JanuaPort", "https://januaport.ai/"))
         good = set().union(*(set(a) for t, a in fake.aufrufe if t.endswith("_add")))
@@ -368,6 +390,9 @@ class EchterBootstrap(unittest.TestCase):
                     else:
                         self.assertEqual(ask, 26)
                         self.assertEqual(len(saetze), 26)
+                        laufkennungen = {s.get("lauf") for s in saetze}
+                        self.assertEqual(len(laufkennungen), 1)
+                        self.assertRegex(laufkennungen.pop() or "", r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
                         self.assertEqual(proc.returncode, 0)
                         self.assertEqual(json.loads(out)["openai"], {"genannt": 12, "zitiert": 12, "fehler": 1})
                         self.assertNotIn("genannt", saetze[0])

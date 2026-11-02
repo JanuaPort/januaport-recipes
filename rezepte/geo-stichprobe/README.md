@@ -102,13 +102,22 @@ wird daraus gelesen. Gemini liefert einen Google-Umleitungslink, und **nur `titl
 als Domain** wird bewertet. Ein Domainwort im Query des Umleitungslinks zählt nicht.
 URL-Zugangsdaten, Steuerzeichen und kaputte Hostformen werden abgewiesen.
 
-Die Satzart hat acht Felder: `datum`, `anlass`, `maschine`, `frage_nr`, `genannt`,
-`zitiert`, `quellen_januaport`, `fehler`. Die ersten vier sind Pflicht und Filter.
+Die Satzart hat neun Felder: `lauf`, `datum`, `anlass`, `maschine`, `frage_nr`,
+`genannt`, `zitiert`, `quellen_januaport`, `fehler`. Die ersten fünf sind Pflicht
+und Filter. `lauf` ist die einmal beim Start gebildete UTC-Startzeit in Sekunden
+(`2026-11-01T06:00:05Z`, synthetisches Beispiel), für alle Sätze beider Maschinen
+im selben Lauf gleich. Der aktuelle Läufer stellt im `januaport`-Modul keine
+Lauf-ID bereit (`januaport-plugins/script-runner/sandbox/bootstrap.py:99`,
+Modulbelegung bis Zeile 102); deshalb wird diese Ersatzkennung verwendet.
 Es gibt keinen Status-Automaten: Sätze werden angelegt; das Skript aktualisiert
 und löscht sie nicht. Bei Messfehlern fehlen beide Booleans. Nur passende
 OpenAI-URLs bzw. Gemini-Domains kommen mit `, ` getrennt und auf 1000 Zeichen
 gekappt in `quellen_januaport`. Herkunft: `source: "script geo_stichprobe"`,
 `as_of` als UTC-ISO-Zeitpunkt; optionales `team` wird unverändert weitergereicht.
+
+Die Kostengrenze bilden die Anbieterdeckel: OpenAI-Projektbudget und
+Gemini-Guthaben beim Betreiber. Das Werkzeug hat keinen Tagesdeckel;
+`daily_cap` gibt es nur an Schreibwerkzeugen (Details in §10).
 
 ## 4. Zugänge und Rechte
 
@@ -141,8 +150,9 @@ gegen die eingerichtete Anlage bleibt Abnahmebedingung (§9).
    `maschine` ist `openai`, `gemini` oder standardmäßig `beide`; `team` ist
    optional eine nichtleere Zeichenkette. Zusatzfelder und ungültige Werte
    enden mit `eingabe_ungueltig`, Exit 1 und **null Werkzeugaufrufen**.
-3. Je ausgewählter Maschine die Fragen 1–13 seriell stellen, unmittelbar
-   bewerten und jeweils einmal `geo_stichprobe_add` rufen. Ausfälle betreffen
+3. Einmal die UTC-Startzeit als `lauf` bilden. Je ausgewählter Maschine die
+   Fragen 1–13 seriell stellen, unmittelbar bewerten und jeweils einmal
+   `geo_stichprobe_add` rufen. Ausfälle betreffen
    die jeweilige Frage; die nächste wird trotzdem gestellt.
 4. stdout liefert ausschließlich je Maschine die Zähler `genannt`, `zitiert`,
    `fehler`, jeweils von 13. Fehler zählt betroffene Fragen, höchstens einmal
@@ -152,8 +162,9 @@ gegen die eingerichtete Anlage bleibt Abnahmebedingung (§9).
    keine Antwort, keine Frage-Antwort-Paare, keine Quellenlisten. Das Kartei-Schreiben
    ist der fachliche Ergebnisweg, stdout das technische Lauf-Ergebnis.
 6. Inbound-KI liest monatlich [`anweisung.md`](anweisung.md) und wertet per
-   `geo_stichprobe_search` aus (Filter Datum/Anlass/Maschine, `limit: 100`, bei
-   Kappung zusätzlich je `frage_nr`; kein offset). Eine weiter gekappte Suche
+   `geo_stichprobe_search` aus (Filter Datum/Anlass/Maschine, nach `lauf` gruppieren,
+   dann mit Filter `lauf`, `limit: 100` und bei Kappung zusätzlich je `frage_nr`;
+   kein offset). Eine weiter gekappte Suche
    bleibt unvollständig. T+28 wird mit dem Beitragstitel als Anlass gestartet.
 
 Für einen manuellen Start mit Vertragskennung 2 beispielsweise:
@@ -169,11 +180,14 @@ diesen Startweg nicht; dort je Maschine das registrierte `script_geo_stichprobe`
 innerhalb der verfügbaren Wandzeit verwenden.
 
 **Idempotenz:** Das Skript ist absichtlich append-only und hat keinen Suchscope
-im Manifest. Ein erneuter Start erzeugt weitere Sätze. Vor Wiederholung per Suche
+im Manifest. Ein erneuter Start erzeugt weitere Sätze mit eigener Startzeit als
+`lauf`. Vor Wiederholung per Suche
 prüfen, welche Kombinationen aus Datum, Anlass, Maschine und Fragennummer schon
 vorliegen. Ein unklar gescheitertes `_add` kann bereits geschrieben haben
 (Produkt-Audit nach Dispatch); es wird deshalb nicht wiederholt. Dubletten
-bei der Auswertung getrennt ausweisen und vom Menschen klären lassen.
+innerhalb eines Laufs bei der Auswertung getrennt ausweisen und vom Menschen
+klären lassen. Wiederholungen anhand von `lauf` getrennt zählen; Teilbestände
+mehrerer Läufe nicht zu einer vollständigen Messung zusammensetzen.
 **Ein Lauf zur Zeit:** Der Läufer hat einen gemeinsamen Slot; bei `busy`
 wird ein Zeitplan-Slot übersprungen, nicht nachgeholt. Das Skript legt keine Sperrdatei an.
 
@@ -244,11 +258,14 @@ stehen im Zähler und, bei erfolgreichem `_add`, im Messsatz.
 - [x] Kanarien-Antworten und Ausnahmetexte bleiben aus Kartei, stdout/stderr und Log;
   Booleans fehlen bei Ausfall, Satzart und geschriebene Felder stimmen überein.
 - [x] Beide MCP-Antwortwege, Fortsetzen nach Mess-/Schreibfehlern, keine Schreib-Retries,
-  UTC und Quellenkappung geprüft. 29/29 Mutationen rot, Original grün.
+  UTC und Quellenkappung geprüft. 30/30 Mutationen rot, Original grün.
+- [x] `lauf` ist bei fortschreitender Uhr und Tageswechsel in allen 26 Sätzen gleich;
+  zwei verschiedene Startzeitpunkte liefern verschiedene Kennungen. Pflichtfeld,
+  Filter und Feldabgleich geprüft; Neubildung je Satz wird als Mutation erkannt.
 - [x] Unveränderter Läufer-Bootstrap mit echten Frames, input/call/log und ToolError
   im netzlosen Python-3.12-Container synthetisch geprüft.
 - [x] Satzart mit echtem `jnpt kartei check` im lokalen Produkt-Image geprüft
-  (acht gültige Felder, vier Filter).
+  (neun gültige Felder, fünf Filter).
 - [ ] Auf Anlage: registrierte Werkzeuge, minimale Rechte und
   additive Rechtewege prüfen; update/delete/Admin und Fremdteam-Zugriffe wirklich versuchen.
 - [ ] Anbieter-Vorlagen, Zeitpläne, Widerruf, Limits und Lauf-Audit gegen die
@@ -286,7 +303,10 @@ Vor Erreichen des Deckels muss der Betreiber die Aufbewahrung organisieren.
 
 Der Antworttext wird ausschließlich im Prozessspeicher bewertet und weder
 gespeichert noch protokolliert. Keine Antworttexte, Personenfelder oder freien
-Fehlertexte in der Satzart. `anlass` ist der einzige fachliche Freitext und
+Fehlertexte in der Satzart. `lauf` enthält nur die UTC-Startzeit ohne Personenbezug;
+es ist keine vom Gateway bereitgestellte Audit-Lauf-ID. Die Sekundenauflösung
+ist für den serialisierten Läufer vorgesehen, keine globale Eindeutigkeitsgarantie.
+`anlass` ist der einzige fachliche Freitext und
 bleibt auf `monatlich` oder einen öffentlichen Beitragstitel begrenzt; der
 Betreiber hält ihn frei von Personendaten. `quellen_januaport` ist nur die
 begrenzte Liste passender URLs/Domains; Betreiber prüfen auch ihre eigenen
