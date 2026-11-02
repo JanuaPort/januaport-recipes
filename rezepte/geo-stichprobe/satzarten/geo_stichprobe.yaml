@@ -1,0 +1,48 @@
+# Betreiber-Datei für JNPT_KARTEIEN_DIR; vor dem Neustart: jnpt kartei check.
+# Ohne freigabe-Ebene: Schreibrechte ausschließlich tool-genau vergeben.
+# freigabe: team würde add UND delete für Team-Mitglieder freigeben.
+name: geo_stichprobe
+description: >-
+  Trend-Signal aus 13 festen Suchfragen an KI-Suchwerkzeuge. Ein Satz je Frage
+  und Maschine. Misst Nennung und Quellenverweis auf januaport.ai, bildet keine
+  Verbraucher-App ab. Fehlende Messwerte sind Ausfälle, keine negativen Treffer.
+fields:
+  - name: lauf
+    description: UTC-Startzeit des Laufs in Sekunden (JJJJ-MM-TTThh:mm:ssZ), einmal je Lauf gebildet und für alle Sätze gleich; ohne Personenbezug.
+    type: string
+    required: true
+    filter: true
+  - name: datum
+    description: Messtag in UTC, JJJJ-MM-TT.
+    type: string
+    required: true
+    filter: true
+  - name: anlass
+    description: monatlich oder T+28 mit Beitragstitel, maximal 120 Zeichen; ohne Personendaten.
+    type: string
+    required: true
+    filter: true
+  - name: maschine
+    description: Aufgerufenes Suchwerkzeug, keine Aussage über Verbraucher-Apps.
+    type: string
+    required: true
+    filter: true
+    enum: [openai, gemini]
+  - name: frage_nr
+    description: Feste Fragennummer 1 bis 13 in der freigegebenen Skript-Fassung.
+    type: integer
+    required: true
+    filter: true
+  - name: genannt
+    description: Antworttext enthält das Wort JanuaPort; bei Ausfall weggelassen.
+    type: boolean
+  - name: zitiert
+    description: Quelle mit Host januaport.ai oder einer Subdomain; bei Ausfall weggelassen.
+    type: boolean
+  - name: quellen_januaport
+    description: Nur Zieltreffer, OpenAI-URLs oder Gemini-Domains, durch Komma und Leerzeichen getrennt, maximal 1000 Zeichen.
+    type: string
+  - name: fehler
+    description: Fester Messfehlercode, kein Ausnahmetext; genannt und zitiert fehlen dann.
+    type: string
+    enum: [aufruf_fehlgeschlagen, antwort_unlesbar]

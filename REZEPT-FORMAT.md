@@ -42,11 +42,14 @@ Gebaut werden Lock und Wheels ausschließlich für das Betreiber-Repository. Geb
 Wheels gehören nicht in den Rezeptkatalog. Diese Ausnahme betrifft den Bau, nicht
 Programme, die auf einer Anlage laufen.
 
-**Skript-Rezept (#1239):** `rezepte/pvs-desktop-rpa/README.md` trägt denselben
+**Skript-Rezept (#1239, #1293):** `rezepte/pvs-desktop-rpa/README.md` und
+`rezepte/geo-stichprobe/README.md` tragen denselben
 YAML-Kopf und dieselben Pflichtabschnitte. Es darf einen Python-Fachkern als
 Paket mit synthetischem Mock, Offline-Tests, Skript-Einstiegen und
 Agenten-Anweisung mitbringen, aber keinen Adapter für ein konkretes Fremdprodukt.
-Der echte Adapter und das Betriebspaket gehören ins Betreiber-Repository;
+Adapter für konkrete Fremdprodukte und deren Betriebspakete gehören ins Betreiber-Repository.
+Ein Skript, das ausschließlich JanuaPort-Werkzeuge verwendet, darf seinen dünnen
+Läufer-Einstieg und das Manifest mitliefern (GEO-Stichprobe, #1293);
 ein bestandener Offline-Test ist kein Anlagenbeleg.
 
 ## 3. Der YAML-Kopf

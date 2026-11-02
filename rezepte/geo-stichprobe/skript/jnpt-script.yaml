@@ -1,0 +1,25 @@
+name: geo_stichprobe
+description: 13 feste Suchfragen je KI-Suche als Trend-Signal; speichert nur Nennung, Zitat und feste Fehlercodes, keinen Antworttext.
+entry: main.py
+tools:
+  - openai_websuche_ask
+  - gemini_websuche_ask
+  - geo_stichprobe_add
+timeout_s: 600
+input_schema:
+  type: object
+  additionalProperties: false
+  properties:
+    anlass:
+      type: string
+      default: monatlich
+      minLength: 1
+      maxLength: 120
+      pattern: '^(monatlich|T\+28: [^\x00-\x1F\x7F]+)$'
+    maschine:
+      type: string
+      enum: [openai, gemini, beide]
+      default: beide
+    team:
+      type: string
+      minLength: 1
