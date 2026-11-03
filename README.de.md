@@ -27,7 +27,7 @@ Jedes Rezept nennt seinen Stand ehrlich, in drei Stufen: **durchdacht** (ausgear
 
 | Rezept | Ziel | Stand |
 |---|---|---|
-| [`rezepte/geo-stichprobe`](rezepte/geo-stichprobe/README.md) | Nennung und Zitat von januaport.ai bei 13 festen Fragen an zwei KI-Suchen als datensparsames Trend-Signal messen. | **Durchdacht.** Stufe 2; synthetisch geprüft, Connector-Vorlagen und Anlagen-Abnahme offen. |
+| [`rezepte/geo-stichprobe`](rezepte/geo-stichprobe/README.md) | Nennung und Zitat von januaport.ai bei 13 festen Fragen an zwei KI-Suchen als datensparsames Trend-Signal messen. | **Erprobt.** Stufe 2; auf einer Anlage gelaufen (03.11.2026, 13 × 2 Fragen, 26 Kartei-Sätze). |
 | [`rezepte/pvs-desktop-rpa`](rezepte/pvs-desktop-rpa/README.md) | PVS-Annahme und zwei Monitor-Ansichten mit Python-Fachkern, synthetischem Mock und Offline-Tests vorbereiten. | **Durchdacht.** Echter Adapter und Ergebnisübergabe an den Läufer offen. |
 | [`rezepte/python-bibliotheken-bauen`](rezepte/python-bibliotheken-bauen/README.md) | Aus einer kurzen requirements.in Wheels für Python 3.12 und ein Hash-Lock bauen, gegenprüfen und als PR im Betreiber-Repository vorschlagen. | **Durchdacht.** Stufe 2, bis zum Merge im Bau; Anlagenbeleg einschließlich Windows-Desktop-Pins offen. |
 | [`rezepte/zahlungseingang`](rezepte/zahlungseingang/REZEPT.md) | Die KI ordnet Zahlungseingänge aus dem Kontoauszug Belegen zu, ein Mensch gibt je Fall frei, ein Roboter bucht in einem Fachsystem ohne Schnittstelle. | **Erprobt.** Bei einem Pilotkunden gegen den echten Betrieb gelaufen; die Abnahme steht aus. Satzart, Anweisung und Roboter-Skripte sind für die Veröffentlichung neu geschrieben. |

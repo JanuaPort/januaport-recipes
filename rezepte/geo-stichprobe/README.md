@@ -3,7 +3,7 @@ name: geo-stichprobe
 titel: Nennung und Zitat einer Domain in zwei KI-Suchen monatlich messen
 ziel: Ein Skript stellt 13 feste Suchfragen und schreibt je Maschine und Frage ein datensparsames Trend-Signal in die Kartei.
 stufe: 2
-stand: durchdacht
+stand: erprobt
 version: 0.1.0
 jnpt_ab: "0.91.0"
 muster: [skript-als-abnehmer]
@@ -24,12 +24,12 @@ beisteller: []
 
 ## 0. Stand und Einordnung
 
-**Durchdacht**, Stufe 2 „Gemeinsam bauen“, JanuaPort/januaport#1293 Teil S/K/R.
-Offline-Tests und ein synthetischer Durchstich durch den unveränderten Python-Bootstrap
-des Läufers prüfen den Einstieg. Es gab keinen Anlagenlauf und keine echten Suchergebnisse.
-Die beiden REST-Vorlagen entstehen parallel im Produkt; ihre Spiegel in
-`januaport-integrations` folgen nach dessen Merge. `jnpt_ab: 0.91.0` bezeichnet
-die früheste vorgesehene Version nach v0.90.0, keine Behauptung einer Auslieferung.
+**Erprobt**, Stufe 2 „Gemeinsam bauen“, JanuaPort/januaport#1293 Teil S/K/R.
+Am 03.11.2026 lief das Rezept auf einer JanuaPort-Anlage mit 0.91.0: `maschine: beide`,
+13 × 2 Fragen in 394 s, `end=ok`, 52 Werkzeugaufrufe, 26 Kartei-Sätze ohne `fehler`.
+Die REST-Vorlagen `openai-websuche` und `gemini-websuche` 1.0.0 liegen in
+`januaport-integrations`. Offline-Tests und ein synthetischer Durchstich durch den
+unveränderten Python-Bootstrap des Läufers prüfen zusätzlich den Einstieg.
 
 §3 des [Rezept-Formats](../../REZEPT-FORMAT.md#3-der-yaml-kopf) sagt „meist 3“,
 erlaubt also Stufe 2. Der Aufbau folgt der Skript-Rezept-Ausnahme aus §2.
@@ -154,7 +154,9 @@ gegen die eingerichtete Anlage bleibt Abnahmebedingung (§9).
 2. Eingabe prüfen: `anlass` standardmäßig `monatlich`, sonst
    `T+28: <Beitragstitel>`, maximal 120 Zeichen, ohne Steuerzeichen;
    `maschine` ist `openai`, `gemini` oder standardmäßig `beide`; `team` ist
-   optional eine nichtleere Zeichenkette. Zusatzfelder und ungültige Werte
+   eine nichtleere Zeichenkette und **Pflicht, sobald die aufrufende Identität in mehr
+   als einem Team ist**: Ohne `team` lehnt `geo_stichprobe_add` dann jeden Satz ab, die
+   Messung läuft ins Leere. Zusatzfelder und ungültige Werte
    enden mit `eingabe_ungueltig`, Exit 1 und **null Werkzeugaufrufen**.
 3. Einmal die UTC-Startzeit als `lauf` bilden. Je ausgewählter Maschine die
    Fragen 1–13 seriell stellen, unmittelbar bewerten und jeweils einmal
@@ -176,8 +178,12 @@ gegen die eingerichtete Anlage bleibt Abnahmebedingung (§9).
 Für einen manuellen Start mit Vertragskennung 2 beispielsweise:
 
 ```json
-{"name":"geo_stichprobe","input":{"anlass":"monatlich","maschine":"openai"},"wall_s":600,"max_tool_calls":26}
+{"name":"geo_stichprobe","input":{"anlass":"monatlich","maschine":"beide","team":"<team>"},"wall_s":600,"max_tool_calls":52}
 ```
+
+`max_tool_calls` ist je Maschine 26 (13 Fragen plus 13 Kartei-Sätze), bei `beide`
+also **52**. Ein zu kleiner Deckel endet mit `end=limit` mitten in der Messung.
+Der erprobte Lauf brauchte für `beide` 394 s; `wall_s: 600` lässt Luft.
 
 Das sind Argumente für `start_script_run`, nicht die Skripteingabe allein.
 `start_script_run` übernimmt `timeout_s` nicht als Default: `wall_s` ausdrücklich
