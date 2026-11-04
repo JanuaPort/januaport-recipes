@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Steuer-App</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+<main>
+  <h1>Steuer-App</h1>
+  <p>Vorhandene Zeitpläne und Geräte-Setups. Jede Änderung braucht eine Bestätigung.</p>
+  <button id="refresh" type="button">Zeitpläne und Setups laden</button>
+  <p id="status" role="status" aria-live="polite">Noch keine Daten geladen.</p>
+  <section id="confirmation" hidden aria-label="Auftrag bestätigen">
+    <h2>Auftrag prüfen</h2>
+    <p id="question"></p>
+    <button id="confirm" type="button">Bestätigen</button>
+    <button id="cancel" type="button">Abbrechen</button>
+  </section>
+  <section id="items" aria-label="Aufrufbare Ziele"></section>
+</main>
+</body>
+</html>

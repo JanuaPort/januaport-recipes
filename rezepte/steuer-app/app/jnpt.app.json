@@ -1,0 +1,8 @@
+{
+  "name": "steuer_app",
+  "fenster": "browser",
+  "modus": "a",
+  "teams": [],
+  "werkzeuge": ["run_control_read", "run_control_set_schedule", "run_control_trigger_setup"],
+  "skripte": ["beispiel_lauf"]
+}
