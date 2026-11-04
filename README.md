@@ -23,11 +23,18 @@ A **recipe** describes what an AI working together with a human needs in order t
 JanuaPort installation: integrations, Kartei record types (structured records), access rights, an agent
 instruction, scripts and checkpoints. Structure and rules: [`REZEPT-FORMAT.md`](REZEPT-FORMAT.md).
 
+App recipes include readable browser sources and instructions for importing an
+uncompressed TAR with `jnpt app import`. Imports are always stopped; the operator
+assigns the carrier, teams and pins, checks open items and explicitly takes the app live.
+See the [app recipe format](REZEPT-FORMAT.md#app-rezept) and [checks](pruefung/app-rezepte/README.md).
+
 Every recipe states its status honestly, in three levels: **thought through** (worked out, not run),
 **tried** (ran against an installation) and **proven** (in operation at a customer).
 
 | Recipe | Goal | Status |
 |---|---|---|
+| [`rezepte/steuer-app`](rezepte/steuer-app/REZEPT.md) | View schedules, enable or disable them, and trigger an existing device setup through the control tools. | **Thought through.** Core load and import checks passed; installation evidence pending. |
+| [`rezepte/monitor-app`](rezepte/monitor-app/REZEPT.md) | Read the curated use-case monitor in a browser. | **Thought through.** Core load and import checks passed; installation evidence pending. |
 | [`rezepte/geo-stichprobe`](rezepte/geo-stichprobe/README.md) | Measure mentions and citations of januaport.ai across 13 fixed questions in two AI search tools; store only a trend signal. | **Tried.** Stage 2; ran on an installation (2026-11-03, 13 × 2 questions, 26 records). |
 | [`rezepte/pvs-desktop-rpa`](rezepte/pvs-desktop-rpa/README.md) | Prepare PVS reception and two monitor views with a Python core, synthetic mock and offline tests. | **Thought through.** Real adapter and runner result handoff pending. |
 | [`rezepte/python-bibliotheken-bauen`](rezepte/python-bibliotheken-bauen/README.md) | Build Python 3.12 wheels and a hash lock from a short requirements.in, check them and propose a PR in the operator repository. | **Thought through.** Stage 2, under construction until merged; installation evidence pending, including Windows desktop pins. |

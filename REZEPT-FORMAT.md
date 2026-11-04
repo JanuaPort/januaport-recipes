@@ -52,6 +52,73 @@ Ein Skript, das ausschließlich JanuaPort-Werkzeuge verwendet, darf seinen dünn
 Läufer-Einstieg und das Manifest mitliefern (GEO-Stichprobe, #1293);
 ein bestandener Offline-Test ist kein Anlagenbeleg.
 
+### App-Rezept
+
+Ein App-Rezept trägt denselben YAML-Kopf und dieselben Pflichtabschnitte in
+`REZEPT.md`, dazu `anweisung.md` für den Aufbau und einen lesbaren Quellordner:
+
+```
+rezepte/<name>/
+  REZEPT.md
+  anweisung.md
+  app/
+    jnpt.app.json
+    index.html
+    app.js
+    mcp.js
+    style.css
+```
+
+Quelle ist das Austauschformat des Kerns: `jnpt app export <name> --out <datei>`
+liefert ein deterministisches, **unkomprimiertes TAR**. Es enthält lexikografisch
+sortierte reguläre Dateien relativ zum App-Ordner, mit Modus 0644, mtime/uid/gid 0.
+Im Manifest ist `teams` die leere Liste; `token_id` entfällt. Die veröffentlichten
+Quellen entsprechen diesem ungebundenen Baum. Archive werden lokal daraus erzeugt,
+nicht im Katalog abgelegt. `pruefung/app-rezepte/pack.py` erzeugt diesen TAR-Vertrag.
+
+`jnpt.app.json` ist geschlossenes JSON mit höchstens 8192 Bytes. Felder:
+`name`, `fenster` (`browser`, `pc`, `beide`), `modus` (`a`, `b`), `teams`,
+`werkzeuge`, `skripte` und im gebundenen Modus a `token_id`. Bezeichner folgen
+`[a-z0-9_]{1,48}`; der Rezeptordner verwendet weiter Bindestriche.
+`werkzeuge` beschreibt den Bedarf; Rechte kommen vom Träger. `skripte` bindet
+die erlaubten Skript- und Geräte-Pins. Die Beispiele verwenden Browserfenster.
+
+Der Betreiber importiert mit
+`jnpt app import <datei> --name <name> [--token-id <id>] [--team <t>]…`.
+Name, Teams und Token-ID stammen dabei ausschließlich von der Zielanlage.
+Modus a benötigt **bereits beim Import** eine dort vergebene Token-ID. Das
+ungebundene Modus-a-Manifest besteht `ParseManifest` erst nach dieser Zuordnung;
+das ist Teil des Austauschformats. Modus b verwendet die angemeldete Person.
+Eine Token-ID bezeichnet den Träger, sie ist kein Token-Klartext.
+
+Die Antwort enthält `fassung` und `offene_punkte`. Zum Rezept gehört eine Liste,
+wie diese Meldungen abzuarbeiten sind:
+
+- `Werkzeug <name> fehlt`: Verfügbarkeit und anschließend Trägerrechte prüfen.
+- `Skript-Pin <name> fehlt`: passenden Pin durch den Betreiber bereitstellen.
+- `Skript-Pin <name> vorhanden, bitte pruefen`: Ziel, Fassung und Deklaration
+  inhaltlich prüfen; gleicher Name reicht nicht als Bindungsnachweis.
+- `Teams leer`: Teams auf der Zielanlage zuordnen.
+
+Ein Import ist **nie live**: Er registriert `zustand=gestoppt`, auch beim
+Wiederimport einer laufenden App. Er erzeugt keine Tokens, Teams oder Pins.
+Danach prüft der Betreiber Träger, Teams, Pins und offene Punkte, konfiguriert den
+Browser-App-Betrieb und schaltet die geprüfte Fassung ausdrücklich live.
+Auch eine leere Liste offener Punkte ersetzt diese Prüfung nicht.
+
+Für diese Quellen gelten höchstens **4 MiB und 1000 Dateien**, auch das fertige
+TAR bleibt höchstens 4 MiB. Eigene `.js`-Dateien ersetzen Inline-Scripts;
+Ereignisattribute und `javascript:`-Adressen werden ebenfalls abgewiesen.
+Erlaubt sind Textquellen einschließlich SVG; Binärdateien wie PNG und ICO sowie
+Geheimnismuster gehören nicht hinein. Die Prüfung nutzt die echte
+`skriptspeicher.PruefeAppDateien`- und `apps.ParseManifest`-Implementierung des
+Kerns sowie den Import mit echtem SQLite-Adapter. Die zusätzliche Quellprüfung
+hält die strengeren Regeln für Inline-Scripts und Textdateien ein.
+Ausführung und bekannte Kerngrenzen: [Prüfung](pruefung/app-rezepte/README.md).
+Felder und Regeln richten sich nach `januaport/internal/apps`, dessen `CLAUDE.md`,
+`januaport/cmd/jnpt/CLAUDE.md` und dem Abschnitt „App-Rezepte“ in
+`januaport/docs/security-model.md`.
+
 ## 3. Der YAML-Kopf
 
 Der Kopf trägt nur, was ein späterer Katalog maschinell braucht. Alles andere steht im Text.
@@ -102,7 +169,7 @@ Repositories Versionen tragen. Werkzeugnamen stehen ohne Präfix; auf der Anlage
   werden per Repo/Pfad referenziert. Gibt es dort noch keins, beschreibt das Rezept die
   Schritte als **Vertrag** (Schritt · Eingabe · Ausgabe · Invarianten) und legt keinen
   eigenen Code bei.
-  Ausnahmen sind Build- und Skript-Rezept aus §2; die Prüfregeln und
+  Ausnahmen sind Build-, Skript- und App-Rezept aus §2; die Prüfregeln und
   Beisteller des Läufers bleiben in `januaport-plugins` maßgeblich.
 - **Agenten-Anweisung** als reiner Text ohne Client-Syntax, Platzhalter in spitzen Klammern.
   Sie trägt die harten Regeln des Rezepts, vor allem die Freigabe durch den Menschen.

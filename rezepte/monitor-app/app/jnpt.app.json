@@ -1,0 +1,8 @@
+{
+  "name": "monitor_app",
+  "fenster": "browser",
+  "modus": "b",
+  "teams": [],
+  "werkzeuge": ["usecase_monitor"],
+  "skripte": []
+}

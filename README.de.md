@@ -22,11 +22,19 @@ Ein **Rezept** beschreibt, was eine KI zusammen mit einem Menschen braucht, um e
 JanuaPort-Anlage aufzubauen: Integrationen, Kartei-Satzarten, Zugänge, eine Agenten-Anweisung, Skripte und
 Prüfsteine. Aufbau und Regeln: [`REZEPT-FORMAT.md`](REZEPT-FORMAT.md).
 
+App-Rezepte enthalten lesbare Browser-Quellen und die Anleitung zum Import als
+unkomprimiertes TAR mit `jnpt app import`. Der Import bleibt immer gestoppt;
+Träger, Teams, Pins, offene Punkte und das ausdrückliche Live-Schalten liegen
+beim Betreiber. Siehe [App-Rezept](REZEPT-FORMAT.md#app-rezept) und
+[Prüfung](pruefung/app-rezepte/README.md).
+
 Jedes Rezept nennt seinen Stand ehrlich, in drei Stufen: **durchdacht** (ausgearbeitet, kein Lauf),
 **erprobt** (gegen eine Anlage gelaufen) und **belegt** (im Betrieb bei einem Kunden).
 
 | Rezept | Ziel | Stand |
 |---|---|---|
+| [`rezepte/steuer-app`](rezepte/steuer-app/REZEPT.md) | Zeitpläne ansehen, an/aus schalten und ein vorhandenes Geräte-Setup über die Steuer-Werkzeuge auslösen. | **Durchdacht.** Kern-Ladeprüfung und Import geprüft; Anlagenbeleg offen. |
+| [`rezepte/monitor-app`](rezepte/monitor-app/REZEPT.md) | Den kuratierten Use-Case-Monitor im Browser lesen. | **Durchdacht.** Kern-Ladeprüfung und Import geprüft; Anlagenbeleg offen. |
 | [`rezepte/geo-stichprobe`](rezepte/geo-stichprobe/README.md) | Nennung und Zitat von januaport.ai bei 13 festen Fragen an zwei KI-Suchen als datensparsames Trend-Signal messen. | **Erprobt.** Stufe 2; auf einer Anlage gelaufen (03.11.2026, 13 × 2 Fragen, 26 Kartei-Sätze). |
 | [`rezepte/pvs-desktop-rpa`](rezepte/pvs-desktop-rpa/README.md) | PVS-Annahme und zwei Monitor-Ansichten mit Python-Fachkern, synthetischem Mock und Offline-Tests vorbereiten. | **Durchdacht.** Echter Adapter und Ergebnisübergabe an den Läufer offen. |
 | [`rezepte/python-bibliotheken-bauen`](rezepte/python-bibliotheken-bauen/README.md) | Aus einer kurzen requirements.in Wheels für Python 3.12 und ein Hash-Lock bauen, gegenprüfen und als PR im Betreiber-Repository vorschlagen. | **Durchdacht.** Stufe 2, bis zum Merge im Bau; Anlagenbeleg einschließlich Windows-Desktop-Pins offen. |
