@@ -1,6 +1,6 @@
 # App-Rezepte prüfen
 
-Vom Repository-Root mit Python 3 und der Go-Version des Kern-Moduls:
+Vom Repository-Root mit Python 3, Node.js 22 und der Go-Version des Kern-Moduls:
 
 ```text
 python pruefung/app-rezepte/check.py --core <KERN_CHECKOUT> --mutations
@@ -12,8 +12,17 @@ und `ParseManifest` stehen als Prüfungen vor den Apps; der erste Lauf mit
 fehlenden App-Ordnern war erwartungsgemäß rot. Die App-Quellen brauchen weder
 Build noch Bibliotheken. Der Pakethelfer verwendet ausschließlich Python-Standardmodule.
 
+`mcp.test.mjs` prüft bei jedem Aufruf den echten `mcp.js`-Adapter in einem
+isolierten Node-Kontext mit Fake-WebView, HTTP und Uhr, ohne Browserstart.
+Geprüft werden beide identischen Quellen, Brückenumschlag, Echo, ID-Zuordnung,
+Fehlerklassen, 65-Sekunden-Frist und Aufräumen sowie der bisherige HTTP-/SSE-Weg.
+`--mutations` entfernt zusätzlich die Adapter-Sperren in Speicherkopien;
+insbesondere muss die entfernte Echo-Prüfung einen Assertion-Test rot machen.
+Die Steuer-App deklariert beide Fenster, der Monitor weiter den Browser.
+Die native Prüfung im PC-Fenster steht aus.
+
 Optional prüft ein echter Headless-Chromium/Edge die Oberfläche und den
-HTTP-Aufrufweg. Dazu Node.js 22 und `RECIPE_BROWSER` als Pfad zum Browser setzen:
+HTTP-Aufrufweg. Dazu `RECIPE_BROWSER` als Pfad zum Browser setzen:
 
 ```text
 python pruefung/app-rezepte/check.py --core <KERN_CHECKOUT> --mutations --browser

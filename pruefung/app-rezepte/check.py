@@ -14,7 +14,8 @@ ROOT = HERE.parents[1]
 
 
 def run(args, cwd, env=None, success=True):
-    result = subprocess.run(args, cwd=cwd, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process_env = dict(os.environ if env is None else env, PYTHONIOENCODING="utf-8")
+    result = subprocess.run(args, cwd=cwd, env=process_env, text=True, encoding="utf-8", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     print(result.stdout, end="", flush=True)
     if (result.returncode == 0) != success:
         raise SystemExit("Unerwartetes Prüfergebnis: " + " ".join(args))
@@ -26,7 +27,7 @@ def main():
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("--core", required=True, type=Path)
     parser.add_argument("--mutations", action="store_true")
-    parser.add_argument("--browser", action="store_true", help="Zusätzlich Node.js und RECIPE_BROWSER verwenden")
+    parser.add_argument("--browser", action="store_true", help="Zusätzlich Headless-Browser über RECIPE_BROWSER verwenden")
     args = parser.parse_args()
     core = args.core.resolve()
     source_env = dict(os.environ, RECIPE_ROOT=str(ROOT))
@@ -35,10 +36,10 @@ def main():
     run(["node", "--test", str(HERE / "mcp.test.mjs")], ROOT)
     if args.mutations:
         for mutation in ("echo", "null", "correlation", "failure", "isError", "deadline", "cleanup", "timer",
-                         "name", "args", "wireArgs", "size", "raw", "fetch", "initialize", "string", "responseString", "status"):
+                         "name", "args", "wireArgs", "size", "raw", "fetch", "initialize", "string", "responseString", "status", "resultError", "eval", "repeat", "unknown", "duplicate"):
             print("MUTATION MCP " + mutation, flush=True)
             result = subprocess.run(["node", "--test", str(HERE / "mcp.test.mjs")], cwd=ROOT,
-                                    env=dict(os.environ, MCP_MUTATION=mutation), text=True,
+                                    env=dict(os.environ, MCP_MUTATION=mutation), text=True, encoding="utf-8",
                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             # Ein echter Assertion-Fehler muss die entfernte Sperre erkennen.
             if result.returncode == 0 or "ERR_ASSERTION" not in result.stdout or "Mutationsanker fehlt" in result.stdout:

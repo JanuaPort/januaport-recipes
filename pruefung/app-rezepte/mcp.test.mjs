@@ -17,16 +17,21 @@ const mutations = {
   deadline: ['}, 65000);', '}, 60000);'],
   cleanup: ['pending.delete(id);', '// Map-Eintrag bleibt'],
   timer: ['clearTimeout(timer);', '// Timer bleibt'],
-  name: ['if (!/^[A-Za-z0-9_.-]{1,128}$/.test(name))', 'if (false)'],
+  name: ['if (typeof name !== "string" || !/^[A-Za-z0-9_.-]{1,128}$/.test(name))', 'if (false)'],
   args: ['if (!isObject(args))', 'if (false)'],
   wireArgs: ['if (!isObject(JSON.parse(body).args.arguments))', 'if (false)'],
   size: ['if (new TextEncoder().encode(body).length > 256 * 1024)', 'if (false)'],
   raw: ['new Error(bridgeError(message.fehler))', 'new Error(message.fehler)'],
   fetch: ['if (globalThis.chrome?.webview)', 'if (false)'],
-  initialize: ['return bridgeCall(name, args);', 'await rpc("initialize", {}); return bridgeCall(name, args);'],
+  initialize: ['if (globalThis.chrome?.webview) return bridgeCall(name, args);', 'if (globalThis.chrome?.webview) { await rpc("initialize", {}); return bridgeCall(name, args); }'],
   string: ['webview.postMessage(body);', 'webview.postMessage(JSON.parse(body));'],
-  responseString: ['if (typeof event.data !== "string") return;', '// Objekt wird gelesen'],
+  responseString: ['if (typeof event.data !== "string") return;', 'if (typeof event.data !== "string") event = { data: JSON.stringify(event.data) };'],
   status: ['else finish(new Error(bridgeError("antwort_ungueltig")));', 'else finish(null, message.ergebnis);'],
+  resultError: ['throw new Error(bridgeError("antwort_ungueltig"));', 'throw error;'],
+  eval: ['return JSON.parse(text);', 'return eval(JSON.parse(text));'],
+  repeat: ['webview.postMessage(body);', 'webview.postMessage(body); webview.postMessage(body);'],
+  unknown: ['JSON.stringify({ id, befehl:', 'JSON.stringify({ extra: true, id, befehl:'],
+  duplicate: ['webview.postMessage(body);', `webview.postMessage(body.replace('{"id":', '{"id":"doppelt","id":'));`],
 };
 
 function fixture({ browser = false, sse = false, sendError = false } = {}) {
@@ -36,6 +41,8 @@ function fixture({ browser = false, sse = false, sendError = false } = {}) {
     const [before, after] = mutations[mutation] || [];
     assert.ok(before && source.includes(before), `Mutationsanker fehlt: ${mutation}`);
     source = source.replace(before, after);
+    // Argumentprüfung vor und nach JSON-Serialisierung sind zwei Sperrwege.
+    if (mutation === "args") source = source.replace(mutations.wireArgs[0], mutations.wireArgs[1]);
   }
   const sent = [], http = [], timers = new Map(), maps = [];
   let listener, now = 0, timerID = 0;
@@ -48,6 +55,7 @@ function fixture({ browser = false, sse = false, sendError = false } = {}) {
     postMessage(body) {
       assert.equal(typeof body, "string", "Host erhält einen JSON-String");
       const request = JSON.parse(body);
+      assert.equal(body, JSON.stringify(request), "Keine doppelten Schlüssel im Umschlag");
       assert.deepEqual(Object.keys(request).sort(), ["args", "befehl", "id"]);
       assert.match(request.id, /^[A-Za-z0-9_.-]{1,64}$/);
       assert.equal(request.befehl, "werkzeug", "Kein initialize im PC-Fenster");
@@ -72,7 +80,7 @@ function fixture({ browser = false, sse = false, sendError = false } = {}) {
       return { ok: true, headers: { get: () => sse ? "text/event-stream" : "application/json" },
         text: async () => sse ? `event: message\ndata: ${JSON.stringify(message)}\n\n` : JSON.stringify(message) };
     }
-  }, { codeGeneration: { strings: false, wasm: false } });
+  });
   // Nur den ES-Modul-Export entfernen, der Adapter selbst bleibt unverändert.
   const callTool = vm.runInContext(source.replace("export async function callTool", "async function callTool") + "\ncallTool;", context);
   function call(name = "probe_read", args = {}) {
@@ -80,7 +88,7 @@ function fixture({ browser = false, sse = false, sendError = false } = {}) {
     state.done = callTool(name, args).then(value => { state.status = "ok"; state.value = value; }, error => { state.status = "error"; state.error = error; });
     return state;
   }
-  return { call, sent, http, timers, maps,
+  return { call, sent, http, timers, maps, executed: () => context.executed,
     emit(message) { listener?.({ data: JSON.stringify(message) }); },
     raw(data) { listener?.({ data }); },
     async flush() { for (let i = 0; i < 12; i++) await Promise.resolve(); },
@@ -121,9 +129,22 @@ test("ECHO ohne ok bleibt offen, danach echte Antwort", async () => {
   assert.equal(a.status, "ok");
   clean(f);
 });
+test("JavaScript im Antworttext bleibt Daten und wird nicht ausgeführt", async () => {
+  const f = fixture(), a = f.call();
+  answer(f, 0, "globalThis.executed = true");
+  await a.done;
+  assert.equal(a.value, "globalThis.executed = true");
+  assert.equal(f.executed(), undefined);
+  clean(f);
+});
 test("Acht offene Aufrufe, Antworten in umgekehrter Reihenfolge, unbekannte und doppelte ID", async () => {
   const f = fixture(), calls = Array.from({ length: 8 }, () => f.call());
   assert.equal(new Set(f.sent.map(m => m.id)).size, 8);
+  const ninth = f.call();
+  f.emit({ id: f.sent[8].id, ok: false, fehler: "zu_viele" });
+  await f.flush();
+  errorIs(ninth, "Zu viele offene Anfragen. Kurz warten.");
+  assert.equal(f.maps[0].size, 8, "Abweisung betrifft nur den neunten Aufruf");
   f.emit({ id: "fremd", ok: true, ergebnis: result("fremd") });
   for (let i = 7; i >= 0; i--) answer(f, i, i);
   f.emit({ id: f.sent[0].id, ok: false, fehler: "fehler" });
@@ -178,6 +199,7 @@ test("Eigene Frist je Aufruf über 60 s; späte Antwort ohne Wirkung", async () 
   f.advance(delay - 60000);
   await a.done;
   errorIs(a, "Keine Antwort vom PC-Fenster. Stand prüfen.");
+  assert.equal(f.sent.length, 2, "Kein Neuversand nach Frist");
   assert.equal(b.status, "pending");
   assert.equal(f.maps[0].size, 1);
   answer(f, 0, "zu spät");
@@ -211,10 +233,18 @@ test("ok muss boolesch sein", async () => {
   f.emit({ id: f.sent[0].id, ok: "true", ergebnis: result("verboten") });
   await a.done; errorIs(a, errors.antwort_ungueltig); clean(f);
 });
+test("Ungültiges Werkzeug-Ergebnis zeigt feste Fehlertexte ohne Antwortdaten", async () => {
+  for (const value of [null, {}, { content: [{ type: "text", text: "private Hostdaten" }] }, { content: "private Hostdaten" }]) {
+    const f = fixture(), a = f.call();
+    f.emit({ id: f.sent[0].id, ok: true, ergebnis: value });
+    await a.done; errorIs(a, errors.antwort_ungueltig); clean(f);
+  }
+});
 test("Ungültige Namen, Argumente, Serialisierung und UTF-8-Übergröße werden vor Versand abgewiesen", async () => {
   const cyclic = {}; cyclic.self = cyclic;
   for (const [name, args, message] of [
     ["", {}, errors.args], ["a/b", {}, errors.args], ["a".repeat(129), {}, errors.args],
+    [17, {}, errors.args], [{ toString: () => "probe" }, {}, errors.args],
     ["probe", null, errors.args], ["probe", [], errors.args], ["probe", "text", errors.args],
     ["probe", { toJSON: () => [] }, errors.args], ["probe", cyclic, errors.args],
     ["probe", { text: "ä".repeat(132000) }, errors.zu_gross],

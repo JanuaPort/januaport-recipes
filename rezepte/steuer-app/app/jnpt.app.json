@@ -1,6 +1,6 @@
 {
   "name": "steuer_app",
-  "fenster": "browser",
+  "fenster": "beide",
   "modus": "a",
   "teams": [],
   "werkzeuge": ["run_control_read", "run_control_set_schedule", "run_control_trigger_setup"],
