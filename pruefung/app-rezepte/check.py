@@ -32,6 +32,20 @@ def main():
     source_env = dict(os.environ, RECIPE_ROOT=str(ROOT))
     (ROOT / ".arbeit").mkdir(exist_ok=True)
     run([sys.executable, "-m", "unittest", "-v", "test_policy", "test_pack"], HERE, source_env)
+    run(["node", "--test", str(HERE / "mcp.test.mjs")], ROOT)
+    if args.mutations:
+        for mutation in ("echo", "null", "correlation", "failure", "isError", "deadline", "cleanup", "timer",
+                         "name", "args", "wireArgs", "size", "raw", "fetch", "initialize", "string", "responseString", "status"):
+            print("MUTATION MCP " + mutation, flush=True)
+            result = subprocess.run(["node", "--test", str(HERE / "mcp.test.mjs")], cwd=ROOT,
+                                    env=dict(os.environ, MCP_MUTATION=mutation), text=True,
+                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            # Ein echter Assertion-Fehler muss die entfernte Sperre erkennen.
+            if result.returncode == 0 or "ERR_ASSERTION" not in result.stdout or "Mutationsanker fehlt" in result.stdout:
+                print(result.stdout, flush=True)
+                raise SystemExit("MCP-Mutation ohne roten Assertion-Test: " + mutation)
+            print("PASS: MCP-Mutation erkannt: " + mutation, flush=True)
+        run(["node", "--test", str(HERE / "mcp.test.mjs")], ROOT)
     if args.browser:
         run(["node", str(HERE / "browser.mjs")], ROOT)
         if args.mutations:
