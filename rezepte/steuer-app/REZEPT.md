@@ -1,6 +1,6 @@
 ---
 name: steuer-app
-titel: Vorhandene Zeitpläne und Geräte-Setups im Browser steuern
+titel: Vorhandene Zeitpläne und Geräte-Setups im Browser und PC-Fenster steuern
 ziel: Ein Mensch sieht Zeitpläne, schaltet sie an oder aus und löst ein vorhandenes Geräte-Setup aus.
 stufe: 2
 stand: durchdacht
@@ -20,6 +20,11 @@ Abhängigkeiten. Lade-Regel, Manifest nach Trägerzuordnung und gestoppter Impor
 sind gegen den echten Kern geprüft; Browser-Anmeldung und Betrieb auf einer Anlage
 sind noch offen. Ein passendes App-Muster ist im Kern nicht beschrieben; daher
 bleibt die Musterliste leer. Format: [App-Rezept](../../REZEPT-FORMAT.md#app-rezept).
+
+Die Brücke für das PC-Fenster ist gebaut: `mcp.js` nutzt dort `werkzeug` über
+`chrome.webview`; im Browser bleibt der bisherige MCP-Aufrufweg erhalten.
+Die Steuer-App ist für beide Fenster deklariert, im PC-Fenster aber noch nicht
+nativ geprüft. Der Monitor bleibt im Browser; Modus b am PC folgt später.
 
 ## 1. Ziel und Passung
 
@@ -56,7 +61,7 @@ kein mitgelieferter Lauf. Keine Kartei und keine zusätzliche Integration.
 
 ## 4. Zugänge und Rechte
 
-Manifest: `fenster=browser`, `modus=a`, `teams=[]`, ohne `token_id`.
+Manifest: `fenster=beide`, `modus=a`, `teams=[]`, ohne `token_id`.
 Der Betreiber stellt vor dem Import eine Technical Identity bereit und übergibt
 deren **ID**, nicht das Secret. Browser-Anmeldung verwendet zusätzlich eine
 berechtigte Person. Die drei Werkzeugrechte stehen als
