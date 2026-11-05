@@ -50,7 +50,7 @@ def main():
     if args.browser:
         run(["node", str(HERE / "browser.mjs")], ROOT)
         if args.mutations:
-            for mutation in ("confirm", "covered", "text", "read", "repeat"):
+            for mutation in ("confirm", "covered", "hint", "text", "read", "repeat"):
                 print("MUTATION Browser " + mutation, flush=True)
                 run(["node", str(HERE / "browser.mjs"), mutation], ROOT, success=False)
             run(["node", str(HERE / "browser.mjs")], ROOT)

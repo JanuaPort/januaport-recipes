@@ -50,9 +50,9 @@ Maßgeblich: `januaport/cmd/jnpt/usecase_monitor_api.go` und
 
 ## 4. Zugänge und Rechte
 
-Manifest: `fenster=browser`, `modus=b`, `teams=[]`, ohne `token_id` und mit
-leerer Pinliste. Der Träger ist die angemeldete Person, kein separates
-App-Token. Sie benötigt `usecase:usecase_monitor` und die vorhandene
+Manifest: `name=monitor`, `fenster=browser`, `modus=b`, `teams=[]`, ohne
+`token_id` und mit leerer Pinliste. Der Träger ist die angemeldete Person,
+kein separates App-Token. Sie benötigt `usecase:usecase_monitor` und die vorhandene
 Besitzzulassung auf die betreffenden Use Cases. Teams auf der Live-App
 begrenzen zusätzlich die App-Zulassung. Die Manifestliste ist Information,
 keine Rechtequelle. Für diese Oberfläche genügt der schmale Lesezuschnitt.
@@ -76,11 +76,12 @@ Vom Repository-Root, nach der [Prüfung](../../pruefung/app-rezepte/README.md):
 
 ```text
 python pruefung/app-rezepte/pack.py rezepte/monitor-app/app <ARCHIV>
-jnpt app import <ARCHIV> --name monitor_app
+jnpt app import <ARCHIV> --name monitor
 ```
 
-Die CLI verwendet die Konfiguration der Zielanlage. Bei bereits geprüften
-Teams ergänzt der Betreiber wiederholte `--team <TEAM>`-Argumente.
+Der App-Name `monitor` wird Hostname unter `apps.<Domain>`; der Rezeptordner
+bleibt `monitor-app`. Die CLI verwendet die Konfiguration der Zielanlage.
+Bei bereits geprüften Teams ergänzt der Betreiber wiederholte `--team <TEAM>`-Argumente.
 Die Antwort enthält `fassung` und `offene_punkte`:
 
 | Offener Punkt | Betreiberaufgabe |

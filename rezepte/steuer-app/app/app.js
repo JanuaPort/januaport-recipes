@@ -23,6 +23,7 @@ async function load() {
   items.replaceChildren();
   const view = await callTool("run_control_read", {});
   if (!Array.isArray(view.items)) throw new Error("Unerwartete Zielsicht.");
+  let blocked = false;
   for (const item of view.items) {
     const card = document.createElement("article");
     const title = document.createElement("h2");
@@ -49,10 +50,12 @@ async function load() {
     } else {
       continue;
     }
+    blocked ||= button.disabled;
     card.append(button);
     items.append(card);
   }
-  status.textContent = view.items.length ? "Stand geladen. Fehlende Schreibdeckung: Schaltfläche gesperrt." : "Keine aufrufbaren Ziele.";
+  status.textContent = items.childElementCount ? "Stand geladen." : "Keine aufrufbaren Ziele.";
+  if (blocked) status.textContent += " Fehlende Schreibdeckung: Schaltfläche gesperrt.";
 }
 
 async function action(fn) {

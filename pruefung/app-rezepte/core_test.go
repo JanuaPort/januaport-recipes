@@ -263,9 +263,9 @@ func TestCoreGaps(t *testing.T) {
 }
 
 func TestExamples(t *testing.T) {
-	for _, name := range []string{"steuer_app", "monitor_app"} {
+	for _, name := range []string{"steuer", "monitor"} {
 		t.Run(name, func(t *testing.T) {
-			root := filepath.Join(os.Getenv("RECIPE_ROOT"), "rezepte", strings.ReplaceAll(name, "_", "-"), "app")
+			root := filepath.Join(os.Getenv("RECIPE_ROOT"), "rezepte", name+"-app", "app")
 			files := map[string]o.Datei{}
 			err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
 				if err != nil {
@@ -292,6 +292,9 @@ func TestExamples(t *testing.T) {
 			var m apps.Manifest
 			if err := json.Unmarshal(raw, &m); err != nil {
 				t.Fatal(err)
+			}
+			if m.Name != name {
+				t.Fatalf("App-Name=%q, Browser-Name=%q", m.Name, name)
 			}
 			if m.TokenID != "" || len(m.Teams) != 0 {
 				t.Fatal("Betreiberbindung im Rezept")

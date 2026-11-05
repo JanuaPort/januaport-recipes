@@ -21,6 +21,14 @@ insbesondere muss die entfernte Echo-Prüfung einen Assertion-Test rot machen.
 Die Steuer-App deklariert beide Fenster, der Monitor weiter den Browser.
 Die native Prüfung im PC-Fenster steht aus.
 
+Die Browser-App-Namen sind `steuer` und `monitor`; die Quellordner bleiben
+`rezepte/steuer-app` und `rezepte/monitor-app`. App-Namen werden Hostnamen unter
+`apps.<Domain>`. `mcp.test.mjs` hält Namen und Importanweisungen sowie die
+Rechtebeschreibung fest: `run_control:run_control` gilt für alle fünf
+Steuer-Werkzeuge, die Ziel-Pinrechte heißen `script:<pin>` und `desktop:<pin>`.
+Der Kernimport in `TestExamples/steuer` und `TestExamples/monitor` verwendet
+dieselben Namen und prüft sie gegen das jeweilige Quellmanifest.
+
 Optional prüft ein echter Headless-Chromium/Edge die Oberfläche und den
 HTTP-Aufrufweg. Dazu `RECIPE_BROWSER` als Pfad zum Browser setzen:
 
@@ -62,9 +70,14 @@ die gemeinsame Herkunftsentscheidung von Import und Registrierung mutiert.
 Die Kern-Dateien bleiben dabei unverändert.
 
 Die Browser-Mutationen lösen einen Schreibaufruf vor Bestätigung aus, heben die
-Deckungssperre auf, führen Antworttext als HTML aus, ersetzen das Monitor-Lesen
-durch einen Schreiber und versenden denselben Schreibauftrag zweimal. Jede
+Deckungssperre auf, zeigen den Sperrhinweis bedingungslos, führen Antworttext als
+HTML aus, ersetzen das Monitor-Lesen durch einen Schreiber und versenden denselben Schreibauftrag zweimal. Jede
 dieser Änderungen muss den Browsertest rot machen.
+Der Deckungstest klickt beide gesperrten Zielarten und bestätigt anschließend;
+am echten HTTP-/MCP-Adapter bleibt die Zahl der Schreibaufrufe unverändert.
+Die Statusprüfung umfasst volle, fehlende und gemischte Deckung, unbekannte
+Zielarten und eine leere Sicht. Der Sperrhinweis erscheint nur bei mindestens
+einer tatsächlich gesperrten, dargestellten Schaltfläche.
 
 ## Offene Punkte im Kern
 
