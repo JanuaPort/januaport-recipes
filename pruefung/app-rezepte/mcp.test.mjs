@@ -34,7 +34,7 @@ const mutations = {
   duplicate: ['webview.postMessage(body);', `webview.postMessage(body.replace('{"id":', '{"id":"doppelt","id":'));`],
 };
 
-function fixture({ browser = false, sse = false, sendError = false } = {}) {
+function fixture({ browser = false, sse = false, sendError = false, httpStatus = 200 } = {}) {
   let source = sources[0].toString();
   const mutation = process.env.MCP_MUTATION;
   if (mutation) {
@@ -76,6 +76,7 @@ function fixture({ browser = false, sse = false, sendError = false } = {}) {
       assert.ok(browser, "Kein fetch im Brückenweg");
       const request = JSON.parse(options.body);
       http.push({ url, options, request });
+      if (httpStatus !== 200) return { ok: false, status: httpStatus };
       const message = { jsonrpc: "2.0", id: request.id, result: { content: [{ type: "text", text: '{"browser":true}' }] } };
       return { ok: true, headers: { get: () => sse ? "text/event-stream" : "application/json" },
         text: async () => sse ? `event: message\ndata: ${JSON.stringify(message)}\n\n` : JSON.stringify(message) };
@@ -271,4 +272,13 @@ for (const sse of [false, true]) test(`Ohne webview unveränderter fetch-Weg (${
   }
   assert.deepEqual(f.http[2].request.params, { name: "probe_read", arguments: { days: 2 } });
   assert.equal(f.sent.length, 0); clean(f);
+});
+
+test("401 nennt das Neuladen, andere Abweisungen bleiben beim Status", async () => {
+  const ended = fixture({ browser: true, httpStatus: 401 }), a = ended.call();
+  await a.done;
+  errorIs(a, "Anmeldung beendet. Seite neu laden, um dich neu anzumelden.");
+  const denied = fixture({ browser: true, httpStatus: 403 }), b = denied.call();
+  await b.done;
+  errorIs(b, "Anfrage abgewiesen (HTTP 403).");
 });
