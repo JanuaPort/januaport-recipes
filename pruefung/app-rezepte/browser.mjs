@@ -12,6 +12,9 @@ if (!edge) throw new Error("RECIPE_BROWSER muss auf Chromium oder Edge zeigen.")
 const mutation = process.argv[2];
 const seen = [];
 let covered = true;
+let setupCovered = true;
+let empty = false;
+let unknown = false;
 let denied = false;
 const server = createServer(async (req, res) => {
   try {
@@ -25,9 +28,9 @@ const server = createServer(async (req, res) => {
       if (input.method === "tools/call") {
         seen.push(input.params);
         let value = { basis: "neu" };
-        if (input.params.name === "run_control_read") value = { items: [
+        if (input.params.name === "run_control_read") value = { items: empty ? [] : [
           { kind: "schedule", name: "takt", pin: "beispiel_lauf", basis: "aktuell", enabled: true, cron: "* * * * *", timezone: "UTC", covered },
-          { kind: "setup", name: "start", device: "geraet", pin: "beispiel_lauf", covered }
+          { kind: unknown ? "unbekannt" : "setup", name: "start", device: "geraet", pin: "beispiel_lauf", covered: setupCovered }
         ] };
         if (input.params.name === "usecase_monitor") value = [{ name: '<img src="x" onerror="window.injected=true">', green: 2, red: 1, waiting: 0, paused: false, last_error: "<b>Hinweis</b>", assumption: "Annahme", notices: [] }];
         result = denied ? { isError: true, content: [] } : { structuredContent: value };
@@ -36,14 +39,15 @@ const server = createServer(async (req, res) => {
       return;
     }
     const path = decodeURIComponent(req.url.split("?")[0]);
-    if (!/^\/(steuer-app|monitor-app)\/(index\.html|app\.js|mcp\.js|style\.css)$/.test(path)) { res.writeHead(404).end(); return; }
+    if (!/^\/(steuer|monitor)\/(index\.html|app\.js|mcp\.js|style\.css)$/.test(path)) { res.writeHead(404).end(); return; }
     const [name, file] = path.slice(1).split("/");
-    let body = await readFile(join(root, "rezepte", name, "app", file), "utf8");
-    if (mutation === "confirm" && name === "steuer-app" && file === "app.js") body = body.replace("pending = { tool, args };", "pending = { tool, args }; callTool(tool, args);");
-    if (mutation === "covered" && name === "steuer-app" && file === "app.js") body = body.replace("button.disabled = !item.covered;", "button.disabled = false;");
-    if (mutation === "text" && name === "monitor-app" && file === "app.js") body = body.replace("title.textContent = view.name;", "title.innerHTML = view.name;");
-    if (mutation === "read" && name === "monitor-app" && file === "app.js") body = body.replace('callTool("usecase_monitor", args)', 'callTool("run_control_trigger_setup", args)');
-    if (mutation === "repeat" && name === "steuer-app" && file === "app.js") body = body.replace("await callTool(command.tool, command.args);", "await callTool(command.tool, command.args); await callTool(command.tool, command.args);");
+    let body = await readFile(join(root, "rezepte", name + "-app", "app", file), "utf8");
+    if (mutation === "confirm" && name === "steuer" && file === "app.js") body = body.replace("pending = { tool, args };", "pending = { tool, args }; callTool(tool, args);");
+    if (mutation === "covered" && name === "steuer" && file === "app.js") body = body.replace("button.disabled = !item.covered;", "button.disabled = false;");
+    if (mutation === "hint" && name === "steuer" && file === "app.js") body = body.replace("if (blocked) status.textContent", "if (true) status.textContent");
+    if (mutation === "text" && name === "monitor" && file === "app.js") body = body.replace("title.textContent = view.name;", "title.innerHTML = view.name;");
+    if (mutation === "read" && name === "monitor" && file === "app.js") body = body.replace('callTool("usecase_monitor", args)', 'callTool("run_control_trigger_setup", args)');
+    if (mutation === "repeat" && name === "steuer" && file === "app.js") body = body.replace("await callTool(command.tool, command.args);", "await callTool(command.tool, command.args); await callTool(command.tool, command.args);");
     res.writeHead(200, { "Content-Type": ({ ".js": "text/javascript", ".css": "text/css", ".html": "text/html" })[extname(file)] }).end(body);
   } catch (error) { res.writeHead(500).end(error.message); }
 });
@@ -92,9 +96,10 @@ try {
     if (message.error) request.reject(new Error(message.error.message)); else request.resolve(message.result);
   };
   await cdp("Page.enable");
-  await page("steuer-app");
+  await page("steuer");
   await click("#refresh");
   await until(() => evaluate('document.querySelectorAll("article").length === 2'));
+  assert.equal(await evaluate('document.querySelector("#status").textContent'), "Stand geladen.", "Sperrhinweis trotz voller Deckung");
   await click("article button");
   await pause(200);
   assert.equal(writes().length, 0, "Schreibaufruf vor Bestätigung");
@@ -112,9 +117,35 @@ try {
   await until(() => evaluate('document.querySelectorAll("article").length === 2'));
   assert.deepEqual(writes()[1], { name: "run_control_trigger_setup", arguments: { device: "geraet", pin: "beispiel_lauf", setup: "start", frei: {} } });
   covered = false;
+  setupCovered = false;
   await click("#refresh");
   await until(() => evaluate('document.querySelectorAll("article").length === 2'));
+  const blocked = writes().length;
+  for (const selector of ["article button", "article:nth-child(2) button"]) {
+    await click(selector);
+    await click("#confirm");
+    await pause(100);
+    assert.equal(writes().length, blocked, "Gesperrte Ziele erzeugen Schreibaufruf");
+  }
   assert.equal(await evaluate('[...document.querySelectorAll("article button")].every(button => button.disabled)'), true, "Fehlende Deckung nicht gesperrt");
+  assert.equal(await evaluate('document.querySelector("#status").textContent'), "Stand geladen. Fehlende Schreibdeckung: Schaltfläche gesperrt.");
+  assert.equal(await evaluate('document.querySelector("#confirmation").hidden'), true);
+  covered = true;
+  await click("#refresh");
+  await until(() => evaluate('document.querySelectorAll("article").length === 2'));
+  assert.deepEqual(await evaluate('[...document.querySelectorAll("article button")].map(button => button.disabled)'), [false, true], "Gemischte Deckung");
+  assert.equal(await evaluate('document.querySelector("#status").textContent'), "Stand geladen. Fehlende Schreibdeckung: Schaltfläche gesperrt.");
+  unknown = true;
+  await click("#refresh");
+  await until(() => evaluate('document.querySelectorAll("article").length === 1'));
+  assert.equal(await evaluate('document.querySelector("#status").textContent'), "Stand geladen.", "Unbekanntes Ziel erzeugt Sperrhinweis ohne gesperrte Schaltfläche");
+  empty = true;
+  await click("#refresh");
+  await until(() => evaluate('document.querySelector("#status").textContent === "Keine aufrufbaren Ziele."'));
+  assert.equal(await evaluate('document.querySelectorAll("article button").length'), 0);
+  empty = false;
+  unknown = false;
+  setupCovered = true;
   covered = true;
   await click("#refresh");
   await until(() => evaluate('document.querySelectorAll("article").length === 2'));
@@ -128,7 +159,7 @@ try {
   assert.equal(await evaluate('document.querySelectorAll("article").length'), 0);
   denied = false;
   seen.length = 0;
-  await page("monitor-app");
+  await page("monitor");
   await click("#refresh");
   await until(() => evaluate('document.querySelectorAll("article").length === 1'));
   assert.equal(await evaluate('document.querySelectorAll("article img, article b").length'), 0, "Antwort als HTML ausgeführt");

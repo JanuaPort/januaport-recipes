@@ -102,6 +102,29 @@ function errorIs(state, message) { assert.equal(state.status, "error"); assert.e
 function clean(f) { assert.ok(f.maps.every(map => map.size === 0), "Offene Map geleert"); assert.equal(f.timers.size, 0, "Timer entfernt"); }
 
 test("Beide mcp.js sind byte-identisch", () => assert.deepEqual(sources[0], sources[1]));
+
+test("App-Namen passen zum Browser-Host und zu den Importanweisungen", () => {
+  for (const [folder, name] of [["steuer-app", "steuer"], ["monitor-app", "monitor"]]) {
+    const manifest = JSON.parse(readFileSync(resolve(root, "rezepte", folder, "app/jnpt.app.json"), "utf8"));
+    assert.equal(manifest.name, name);
+    assert.match(manifest.name, /^[a-z0-9]{1,48}$/);
+    const recipe = readFileSync(resolve(root, "rezepte", folder, "REZEPT.md"), "utf8");
+    assert.ok(recipe.includes(`--name ${name}`));
+    assert.doesNotMatch(recipe, /--name (steuer|monitor)_app\b/);
+  }
+});
+
+test("Rechtebeschreibung nennt das gemeinsame Steuerrecht und echte Pinrechte", () => {
+  const recipe = readFileSync(resolve(root, "rezepte/steuer-app/REZEPT.md"), "utf8");
+  const rights = recipe.split("## 4. Zugänge und Rechte")[1].split("## 5.")[0];
+  assert.match(rights, /`run_control:run_control`/);
+  assert.match(rights, /alle fünf/);
+  for (const tool of ["read", "set_schedule", "set_setup", "trigger_setup", "pause_usecase"])
+    assert.ok(rights.includes(`\`run_control_${tool}\``), tool);
+  assert.match(rights, /`script:<pin>`/);
+  assert.match(rights, /`desktop:<pin>`/);
+  assert.doesNotMatch(rights, /run_control:run_control_|`(?:script|desktop)_<pin>`/);
+});
 test("Textteile und structuredContent; nur werkzeug, String, kein fetch", async () => {
   const f = fixture();
   const a = f.call("probe_read", { text: "Grüße" });
