@@ -61,13 +61,16 @@ kein mitgelieferter Lauf. Keine Kartei und keine zusätzliche Integration.
 
 ## 4. Zugänge und Rechte
 
-Manifest: `fenster=beide`, `modus=a`, `teams=[]`, ohne `token_id`.
+Manifest: `name=steuer`, `fenster=beide`, `modus=a`, `teams=[]`, ohne `token_id`.
 Der Betreiber stellt vor dem Import eine Technical Identity bereit und übergibt
 deren **ID**, nicht das Secret. Browser-Anmeldung verwendet zusätzlich eine
-berechtigte Person. Die drei Werkzeugrechte stehen als
-`run_control:run_control_read`, `run_control:run_control_set_schedule` und
-`run_control:run_control_trigger_setup` auf dem Träger. Hinzu kommen die Rechte
-auf die betroffenen `script_<pin>` beziehungsweise `desktop_<pin>` und die
+berechtigte Person. Der Träger braucht das gemeinsame Recht
+`run_control:run_control`. Es gilt für alle fünf Steuer-Werkzeuge:
+`run_control_read`, `run_control_set_schedule`, `run_control_set_setup`,
+`run_control_trigger_setup` und `run_control_pause_usecase`. Die Werkzeugliste
+im Manifest schränkt dieses Recht nicht auf die drei verwendeten Werkzeuge ein.
+Hinzu kommen die Rechte `script:<pin>` beziehungsweise `desktop:<pin>`
+auf die betroffenen Server- beziehungsweise Geräte-Pins und die
 vollständige Deckung der deklarierten Laufrechte einschließlich Klartext und
 Datenfiltern. `werkzeuge` im Manifest vergibt keine Rechte.
 
@@ -96,11 +99,13 @@ Vom Repository-Root, nach der [Prüfung](../../pruefung/app-rezepte/README.md):
 
 ```text
 python pruefung/app-rezepte/pack.py rezepte/steuer-app/app <ARCHIV>
-jnpt app import <ARCHIV> --name steuer_app --token-id <TRAEGER_ID>
+jnpt app import <ARCHIV> --name steuer --token-id <TRAEGER_ID>
 ```
 
-Die CLI läuft mit der Konfiguration der Zielanlage. Sie liefert `fassung` und
-`offene_punkte`. Ohne neue Träger-ID wird Modus a vor dem Speichern abgewiesen.
+Der App-Name `steuer` wird Hostname unter `apps.<Domain>`; der Rezeptordner
+bleibt `steuer-app`. Die CLI läuft mit der Konfiguration der Zielanlage. Sie
+liefert `fassung` und `offene_punkte`. Ohne neue Träger-ID wird Modus a vor dem
+Speichern abgewiesen.
 Bei bereits geprüften Teams kann der Betreiber `--team <TEAM>` wiederholen.
 
 | Offener Punkt | Betreiberaufgabe |
@@ -131,6 +136,9 @@ und `ja: true`. Danach Browser-Anmeldung und Funktionsprobe durchführen.
 | `covered=false` | Schaltfläche gesperrt | Betreiber prüft vollständige Trägerdeckung |
 | Freigabepflicht aktiv | Kern verweist an Admin-Weg | Betreiber entscheidet dort |
 | Versand unklar | keine automatische Wiederholung | Mensch prüft vorhandenen Lauf im Monitor |
+
+Der Hinweis „Fehlende Schreibdeckung: Schaltfläche gesperrt.“ erscheint nur,
+wenn mindestens eine dargestellte Schaltfläche wegen fehlender Deckung gesperrt ist.
 
 ## 9. Prüfsteine
 

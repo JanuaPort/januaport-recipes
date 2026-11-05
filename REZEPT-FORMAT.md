@@ -80,6 +80,10 @@ nicht im Katalog abgelegt. `pruefung/app-rezepte/pack.py` erzeugt diesen TAR-Ver
 `name`, `fenster` (`browser`, `pc`, `beide`), `modus` (`a`, `b`), `teams`,
 `werkzeuge`, `skripte` und im gebundenen Modus a `token_id`. Bezeichner folgen
 `[a-z0-9_]{1,48}`; der Rezeptordner verwendet weiter Bindestriche.
+Für Browser-Apps wählen die Rezepte App-Namen aus `[a-z0-9]{1,48}`:
+Der App-Name wird Hostname unter `apps.<Domain>`, wo Unterstriche ungeeignet sind.
+Die Beispiele heißen `steuer` und `monitor`; ihre Rezeptordner bleiben
+`steuer-app` und `monitor-app`. Pin-Bezeichner dürfen weiter Unterstriche tragen.
 `werkzeuge` beschreibt den Bedarf; Rechte kommen vom Träger. `skripte` bindet
 die erlaubten Skript- und Geräte-Pins. Die Beispiele verwenden Browserfenster.
 

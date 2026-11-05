@@ -1,6 +1,13 @@
 Baue die Steuer-App aus app/ auf der Zielanlage auf. Lies REZEPT.md und den
 Abschnitt App-Rezept in REZEPT-FORMAT.md. Verwende nur die vom Kern beschriebenen
 Manifestfelder und die drei dort aufgeführten Steuer-Werkzeuge.
+Verwende den App-Namen steuer (Hostname unter apps.<Domain>); der Rezeptordner
+bleibt steuer-app. Das Trägerrecht run_control:run_control gilt für alle fünf
+Steuer-Werkzeuge, auch run_control_set_setup und run_control_pause_usecase.
+Die Werkzeugliste im Manifest schränkt dieses Recht nicht ein; die App verwendet
+nur die drei genannten Werkzeuge. Ziel-Pinrechte heißen script:<pin>
+beziehungsweise desktop:<pin>. Die zusätzliche Kernprüfung der App-Pins und
+der Ausschluss von App-Trägern bei der Use-Case-Pause gelten weiterhin.
 
 Lass den Betreiber <TRAEGER_ID>, <TEAMS>, passende <PINS> sowie vorhandene
 Zeitpläne und Geräte-Setups bestimmen. Prüfe die vollständige Trägerdeckung
