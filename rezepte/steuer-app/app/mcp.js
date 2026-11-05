@@ -82,6 +82,8 @@ async function rpc(method, params, notification = false) {
     },
     body: JSON.stringify(request)
   });
+  // 401 heißt: Die Sitzung ist vorbei, etwa nach einem Fassungswechsel. Der App-Host hat sie verworfen.
+  if (response.status === 401) throw new Error("Anmeldung beendet. Seite neu laden, um dich neu anzumelden.");
   if (!response.ok) throw new Error(`Anfrage abgewiesen (HTTP ${response.status}).`);
   if (notification) return;
   const text = await response.text();
