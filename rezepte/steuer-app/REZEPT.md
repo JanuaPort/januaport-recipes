@@ -4,9 +4,9 @@ titel: Vorhandene Zeitpläne und Geräte-Setups im Browser und PC-Fenster steuer
 ziel: Ein Mensch sieht Zeitpläne, schaltet sie an oder aus und löst ein vorhandenes Geräte-Setup aus.
 stufe: 2
 stand: durchdacht
-version: 0.1.0
+version: 0.1.1
 jnpt_ab: "0.92.0"
-muster: []
+muster: [app-bauen]
 integrationen: []
 beisteller: []
 ---
@@ -18,8 +18,8 @@ beisteller: []
 **Durchdacht**, Stufe 2 „Gemeinsam bauen“. Browser-Quellen ohne Build-Schritt und
 Abhängigkeiten. Lade-Regel, Manifest nach Trägerzuordnung und gestoppter Import
 sind gegen den echten Kern geprüft; Browser-Anmeldung und Betrieb auf einer Anlage
-sind noch offen. Ein passendes App-Muster ist im Kern nicht beschrieben; daher
-bleibt die Musterliste leer. Format: [App-Rezept](../../REZEPT-FORMAT.md#app-rezept).
+sind noch offen. Das Muster `app-bauen` liefert der Kern ab
+0.93.0 mit (`wissen_get muster/app-bauen`). Format: [App-Rezept](../../REZEPT-FORMAT.md#app-rezept).
 
 Die Brücke für das PC-Fenster ist gebaut: `mcp.js` nutzt dort `werkzeug` über
 `chrome.webview`; im Browser bleibt der bisherige MCP-Aufrufweg erhalten.
