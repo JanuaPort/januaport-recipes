@@ -5,7 +5,7 @@ ziel: Ein Mensch sieht Zeitpläne, schaltet sie an oder aus und löst ein vorhan
 stufe: 2
 stand: durchdacht
 version: 0.1.1
-jnpt_ab: "0.92.0"
+jnpt_ab: "0.93.0"
 muster: [app-bauen]
 integrationen: []
 beisteller: []
