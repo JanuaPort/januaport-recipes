@@ -4,9 +4,9 @@ titel: Den kuratierten Use-Case-Monitor im Browser lesen
 ziel: Ein Mensch sieht Zähler und kuratierte Hinweise für seine sichtbaren Use Cases.
 stufe: 3
 stand: durchdacht
-version: 0.1.0
-jnpt_ab: "0.92.0"
-muster: []
+version: 0.1.1
+jnpt_ab: "0.93.0"
+muster: [app-bauen]
 integrationen: []
 beisteller: []
 ---
@@ -17,8 +17,8 @@ beisteller: []
 
 **Durchdacht**, Stufe 3 „Überblick behalten“. Lade-Regel, Manifest und gestoppter
 Import sind mit dem echten Kern geprüft; ein Anlagenbeleg einschließlich
-Browser-Anmeldung steht aus. Ein passendes App-Muster fehlt im Kern, daher
-`muster: []`. Format: [App-Rezept](../../REZEPT-FORMAT.md#app-rezept).
+Browser-Anmeldung steht aus. Das Muster `app-bauen` liefert der Kern
+ab 0.93.0 mit (`wissen_get muster/app-bauen`). Format: [App-Rezept](../../REZEPT-FORMAT.md#app-rezept).
 
 ## 1. Ziel und Passung
 
