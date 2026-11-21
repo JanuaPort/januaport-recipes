@@ -193,6 +193,28 @@ class AnnahmeTests(unittest.TestCase):
         self.assertEqual(annahme(mock, nur_melden=False), {"codes": {"angenommen": 1, "zeitlimit": 1}})
         self.assertEqual(mock.annahme_aufrufe, [KENNUNG])
 
+    def test_zeitlimit_im_eintrag_wird_einmal_gezaehlt_und_beendet_den_lauf(self):
+        dritte = "T-0000-0009"
+        for nur_melden, code in ((True, "wuerde_annehmen"), (False, "angenommen")):
+            with self.subTest(nur_melden=nur_melden):
+                mock = MockAdapter([befund(), befund(kennung=ANDERE), befund(kennung=dritte)])
+                mock.verzoegerung["lese_anmeldung"] = 3  # Eintrag 2 liest bei 6 s, das Lauflimit liegt bei 5 s
+                self.assertEqual(annahme(mock, nur_melden=nur_melden), {"codes": {code: 1, "zeitlimit": 1}})
+                self.assertEqual(mock.aufrufe.count("lese_anmeldung"), 2)
+                self.assertEqual(mock.annahme_aufrufe, [] if nur_melden else [KENNUNG])
+
+    def test_halber_eintrag_und_spaeteres_lauflimit_zaehlen_getrennt(self):
+        mock = MockAdapter([befund(vollstaendig=False), befund(kennung=ANDERE), befund(kennung="T-0000-0009")])
+        mock.nach_lesen = lambda m, kennung: setattr(m, "zeit", m.zeit + 10) if kennung == ANDERE else None
+        self.assertEqual(annahme(mock), {"codes": {"zeitlimit": 2, "wuerde_annehmen": 1}})
+        self.assertEqual(mock.aufrufe.count("lese_anmeldung"), 2)
+
+    def test_ungueltige_kennung_nach_halbem_eintrag_verdeckt_spaeteres_lauflimit_nicht(self):
+        mock = MockAdapter([befund(vollstaendig=False), befund(kennung=ANDERE)], reihenfolge=[KENNUNG, "", ANDERE])
+        zeiten = iter([0, 0, 1, 6])  # Lauf, Kopf 1, Kopf 2, Kopf 3 mit abgelaufenem Limit
+        self.assertEqual(run_annahme(mock, uhr=lambda: next(zeiten)), {"codes": {"zeitlimit": 2, "unbekannt": 1}})
+        self.assertEqual(mock.aufrufe.count("lese_anmeldung"), 1)
+
     def test_kern_prueft_deadline_vor_lesen(self):
         mock = MockAdapter([befund()])
         zeiten = iter([0, 6])
