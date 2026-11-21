@@ -24,7 +24,10 @@ class SourceRules(unittest.TestCase):
             '<form action="/senden"></form>',
         ]:
             with self.subTest(markup=markup):
-                check_file("index.html", html(markup))
+                try:
+                    check_file("index.html", html(markup))
+                except ValueError as fehler:
+                    self.fail(f"erlaubte Quelle abgewiesen: {fehler}")
 
     def test_script_source_rejections(self):
         for src in [
