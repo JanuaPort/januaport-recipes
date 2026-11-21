@@ -113,6 +113,10 @@ Auch eine leere Liste offener Punkte ersetzt diese Prüfung nicht.
 Für diese Quellen gelten höchstens **4 MiB und 1000 Dateien**, auch das fertige
 TAR bleibt höchstens 4 MiB. Eigene `.js`-Dateien ersetzen Inline-Scripts;
 Ereignisattribute und `javascript:`-Adressen werden ebenfalls abgewiesen.
+Scripts werden nur als relative eigene `.js`-Dateien eingebunden; in URL-Attributen
+sind nur relative Pfade, Fragmente sowie `http`, `https` und `mailto` erlaubt.
+Eingebettete Dokumente (`srcdoc`, `<object>`, `<embed>`, `<base>`,
+`meta http-equiv=refresh`) werden abgewiesen.
 Erlaubt sind Textquellen einschließlich SVG; Binärdateien wie PNG und ICO sowie
 Geheimnismuster gehören nicht hinein. Die Prüfung nutzt die echte
 `skriptspeicher.PruefeAppDateien`- und `apps.ParseManifest`-Implementierung des

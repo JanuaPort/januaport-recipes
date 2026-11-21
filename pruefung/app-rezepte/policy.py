@@ -3,17 +3,52 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 
+EMBEDDING_TAGS = {"object", "embed", "base"}
+URL_ATTRIBUTES = {"href", "src", "action", "formaction", "xlink:href", "poster", "data", "background", "cite"}
+URL_SCHEMES = {"http", "https", "mailto"}
+
+
+def url_form(value):
+    """Wie der URL-Parser der Browser: Tab, Zeilenumbruch und Steuerzeichen fallen weg."""
+    return "".join(c for c in value or "" if c > " ").lower()
+
+
+def is_allowed_url(value):
+    """Relativer Pfad, Fragment oder ein Schema aus der positiven Liste."""
+    head, colon, _ = url_form(value).partition(":")
+    return not colon or bool(set(head) & set("/?#")) or head in URL_SCHEMES
+
+
+def is_meta_refresh(tag, attrs):
+    return tag == "meta" and any(key == "http-equiv" and (value or "").lower() == "refresh" for key, value in attrs)
+
+
+def is_own_js_file(src):
+    path = url_form(src).replace("\\", "/")
+    return (
+        path.endswith(".js")
+        and ":" not in path
+        and not path.startswith("/")
+        and ".." not in path.split("/")
+    )
+
+
 class SourceHTML(HTMLParser):
     script = False
 
     def handle_starttag(self, tag, attrs):
-        attrs = dict(attrs)
         self.script = self.script or tag == "script"
-        if tag == "script" and (not attrs.get("src") or not attrs["src"].endswith(".js")):
+        if tag in EMBEDDING_TAGS or is_meta_refresh(tag, attrs):
+            raise ValueError("Eingebettetes Dokument")
+        if tag == "script" and not any(key == "src" for key, _ in attrs):
             raise ValueError("Script braucht eine eigene .js-Datei")
-        for key, value in attrs.items():
-            if key.lower().startswith("on") or (value or "").strip().lower().startswith("javascript:"):
+        for key, value in attrs:
+            if tag == "script" and key == "src" and not is_own_js_file(value):
+                raise ValueError("Script braucht eine eigene .js-Datei")
+            if key.startswith("on") or key == "srcdoc":
                 raise ValueError("Inline-Script")
+            if key in URL_ATTRIBUTES and not is_allowed_url(value):
+                raise ValueError("Adresse mit unzulässigem Schema")
 
     def handle_data(self, data):
         if self.script and data.strip():
