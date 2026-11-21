@@ -19,8 +19,9 @@ KI → Kartei → Desktop-Läufer/Python → Kartei → KI, für Software ohne S
 ## 0. Stand und Einordnung
 
 **Stand: durchdacht**, kein Anlagenlauf. Geräte, Kopplung, Auftragskanal und Ausfall-Alarm
-sind seit JanuaPort 0.85.0 gebaut. Client `desktop-runner`: gebaut, **noch kein Release,
-unsigniert**, gemeinsame Live-Abnahme offen. Klickfolge entsteht vor Ort.
+sind seit JanuaPort 0.85.0 gebaut. Für den Client `desktop-runner` ist ein
+**signiertes Windows-Release** vorhanden ([Plugin-Releases](https://github.com/JanuaPort/januaport-plugins/releases));
+die gemeinsame Live-Abnahme mit der Anlage ist offen. Klickfolge entsteht vor Ort.
 
 **Stufe 2 — Gemeinsam bauen** (Stufenweg seit #1046). Muster über `wissen_get muster/<name>`:
 
@@ -186,7 +187,7 @@ nacheinander; Status ist keine atomare Reservierung konkurrierender Clients.
 | Was | Wofür | Zuschnitt | Wann |
 |---|---|---|---|
 | 1. Gerät anlegen, koppeln | Geräte-Vertrauen | Art und erwartetes Konto festlegen; Code über GUI, REST oder CLI, am Client einlösen | zuerst |
-| 2. Client einrichten | Desktop-Läufer betreiben | ohne Release, unsigniert; vorgesehenes Konto, Installation und Bereitschaft nach Client-README | vor dem Pin |
+| 2. Client einrichten | Desktop-Läufer betreiben | signiertes Windows-Release aus den [Plugin-Releases](https://github.com/JanuaPort/januaport-plugins/releases); vorgesehenes Konto, Installation und Bereitschaft nach Client-README | vor dem Pin |
 | 3. Pin `desktop` mit Gerät setzen | Commit und Ziel binden | nur Admin; `kind: desktop`, `target_device`; alle Pins gemeinsam beurteilen | vor Startfreigabe |
 | 4. Zeitplan oder Recht auf `start_desktop_run` für den Drehbuch-Token | einen Auslöser wählen | Ziel „Gerät“ aus Pin; alternativ `desktop:<pin>` administrativ; Kartei-Scopes nach §4 vormerken | vor Produktivstart |
 | 5. Satzart in `JNPT_KARTEIEN_DIR` | Übergabe laden | `jnpt kartei check`, Neustart, Scopes nach §4 setzen; Katalog prüfen, ohne `freigabe` | vor erstem Lauf |
@@ -251,7 +252,7 @@ sind mit **durchdacht** noch nicht bestanden.
   verworfen. Diagnose/Ergebnis in die vorgesehenen Felder schreiben.
 - **Audit belegt keine Klickwirkung.** KI bewertet den gelesenen Nachweis, nicht selbst
   den Desktop. Kein Kartei-Watcher in v1, keine zugesagte automatische KI-Fortsetzung.
-- **Client ohne Release und unsigniert;** keine gemeinsame Anlagen-Abnahme des Rezepts.
+- **Signiertes Windows-Release vorhanden** ([Plugin-Releases](https://github.com/JanuaPort/januaport-plugins/releases)); die gemeinsame Live-Abnahme mit der Anlage steht aus.
 
 ## 11. Datenschutz
 
