@@ -31,8 +31,10 @@ Die REST-Vorlagen `openai-websuche` und `gemini-websuche` 1.0.0 liegen in
 `januaport-integrations`. Offline-Tests und ein synthetischer Durchstich durch den
 unveränderten Python-Bootstrap des Läufers prüfen zusätzlich den Einstieg.
 
-§3 des [Rezept-Formats](../../REZEPT-FORMAT.md#3-der-yaml-kopf) sagt „meist 3“,
-erlaubt also Stufe 2. Der Aufbau folgt der Skript-Rezept-Ausnahme aus §2.
+Stufe 2 „Gemeinsam bauen“ umfasst hier den Aufbau des Messablaufs als Use Case
+(siehe §3 des [Rezept-Formats](../../REZEPT-FORMAT.md#3-der-yaml-kopf));
+Stufe 3 „Überblick behalten“ ordnet Überwachungs-/Monitor-Rezepte ein.
+Der Aufbau folgt der Skript-Rezept-Ausnahme aus §2.
 Das Muster `wissen_get muster/skript-als-abnehmer` trägt den eigenen Zugang,
 werkzeuggenaue Rechte, strukturierte Daten und Zähler im Protokoll bei. Hier
 ersetzt das Läufer-Modul den dort beschriebenen HTTP-Handshake; einzelne

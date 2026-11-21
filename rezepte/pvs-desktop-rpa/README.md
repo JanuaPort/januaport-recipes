@@ -99,12 +99,12 @@ ansonsten sichere Fälle mit gültiger Karte und Termin heute umschaltbar.
 | dieselbe Karte mehrfach in der Momentaufnahme | einmal verarbeiten, weitere Vorkommen: `doppelt` |
 | Kostenträger-Sonderfall | liegen lassen: `kostentraeger` |
 | unbekannte Kategorie, ungültige Fakten oder verschwundener Eintrag | liegen lassen: `unbekannt` |
-| Datensatz gesperrt | Lauf anhalten: `gesperrt` |
+| Datensatz gesperrt | liegen lassen: `gesperrt`; die übrigen Einträge laufen weiter |
 
 Bei kombinierten Merkmalen gilt: ungültige/unbekannte Fakten verhindern jede
 Annahme; bereits erledigte Fälle werden nicht bearbeitet. Ungültige Karte,
 unbekannter Patient, Abweichung, Sonderkostenträger und fehlender Termin sperren
-vor einer Quartalsfreigabe. Ein Dialog, fehlende Bereitschaft, Zeitlimit oder
+vor einer Quartalsfreigabe. Ein Dialog, fehlende Bereitschaft, Zeitlimit des ganzen Laufs oder
 eine Ausnahme beendet den Lauf; übrige Einträge bleiben bis zum nächsten Takt.
 
 **UC2-Setups:** Die folgenden Ansichten sind ausdrücklich synthetische
@@ -159,11 +159,13 @@ nur ihren festen Fehlercode. Das Skript führt keine Inhaltslogs.
 
 **Ergebnisweg — offen:** Die lokale Vorlage beschreibt `januaport.input` und
 `januaport.call` mit fachlichem Kartei-Schreiben; technisches `runs/result`
-ersetzt dieses Schreiben nicht. Auch die gelesenen Quellen
+ersetzt dieses Schreiben nicht. Die Client-README
 [`desktop-runner/README.md`](https://github.com/JanuaPort/januaport-plugins/blob/main/desktop-runner/README.md)
-und [`contract/README.md`](https://github.com/JanuaPort/januaport-plugins/blob/main/desktop-runner/contract/README.md)
-dokumentieren kein `jnpt.ergebnis`. Darum heißt die Austauschstelle ausdrücklich
-`ergebnis_abgeben`. Sie validiert erneut und gibt lokal das Zähler-JSON auf
+dokumentiert `jnpt.ergebnis(wert)` für JSON bis 64 KiB; normale Aufträge verwerfen
+gültige Werte still. Der [Draht-Vertrag](https://github.com/JanuaPort/januaport-plugins/blob/main/desktop-runner/contract/README.md)
+und die Client-README sind für die Anbindung maßgeblich. Der Ergebnisweg für
+normale Aufträge bleibt offen. Die lokale Austauschstelle `ergebnis_abgeben`
+validiert erneut und gibt das Zähler-JSON auf
 stdout aus. Der Läufer verwirft stdout/stderr; **damit ist die fachliche
 Läufer-Rückgabe noch nicht angebunden**. In Sprint 1 müssen die Übergabe der
 Eingabe aus `januaport.input`, ein festgelegter Ergebnisempfänger samt Vertrag
