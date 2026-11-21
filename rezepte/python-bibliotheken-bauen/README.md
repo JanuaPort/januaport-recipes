@@ -231,6 +231,7 @@ weder Code noch Prüfregeln.
 | Größe oder Dateizahl überschritten | ZIP-Inhalt gelesen | Abbruch; Paketmenge verkleinern |
 | uv-Version anders | Versionsprüfung | uv 0.11.3 bereitstellen |
 | PyPI/GitHub nicht erreichbar | Unterprozessfehler | Lauf gescheitert, nach Klärung erneut starten |
+| Ausgabe lässt sich nicht tauschen (Umbenennen oder Lock scheitert) | Dateisystemfehler beim Tausch | neue Wheels verworfen, alte Wheels und altes Lock bleiben unverändert; Ursache klären, neu bauen |
 | Token darf keinen PR öffnen | gh-Schritt | Warnung „PR nicht angelegt“, Lauf bleibt grün; Mensch öffnet den PR über den Link in der Zusammenfassung |
 | Zweig lässt sich nicht pushen | git-push-Schritt | Lauf rot; Admin prüft `contents: write` des Aufrufers |
 | Pin bleibt unknown, pending oder ungültig | Pin-Liste des Läufers | Admin prüft Grund nach Läufer-README, keine Nachinstallation |

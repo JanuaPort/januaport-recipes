@@ -255,7 +255,7 @@ Direkte Demo unter PowerShell, nur mit dem eingebauten synthetischen Mock:
 
 | Fall | Erkennung | Verhalten / wer löst |
 |---|---|---|
-| Fenster lädt zu lange oder bleibt halb gefüllt | gemeinsame Deadline, unvollständige Fakten | `zeitlimit`, keine weitere Wirkung; Mensch |
+| Fenster lädt zu lange oder bleibt halb gefüllt | gemeinsame Deadline, unvollständige Fakten | `zeitlimit` genau einmal, keine weitere Wirkung; die übrigen Einträge bleiben unbearbeitet und ungezählt; Mensch |
 | unerwarteter Dialog | typisiertes Adapter-Signal | `dialog`, stehen lassen; Mensch |
 | Datensatz gesperrt | frische Sperrprüfung vor Lesen und Wirkung | `gesperrt`, nur dieser Eintrag bleibt liegen, die übrigen laufen weiter; Mensch |
 | einzelner Eintrag bleibt halb gefüllt | Wartegrenze je Eintrag (1 s im Vorbau) | `zeitlimit` für diesen Eintrag, die übrigen laufen weiter; Mensch |
