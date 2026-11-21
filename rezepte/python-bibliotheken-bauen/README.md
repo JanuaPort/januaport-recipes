@@ -15,8 +15,7 @@ beisteller: [januaport-plugins/script-runner, januaport-plugins/desktop-runner]
 
 ## 0. Stand und Einordnung
 
-**Durchdacht**, Stufe 2 „Gemeinsam bauen“, **im Bau** bis dieses Rezept gemergt
-ist (#1230). Nicht release-blockierend. `jnpt_ab` benennt die dokumentierte
+**Durchdacht**, Stufe 2 „Gemeinsam bauen“. `jnpt_ab` benennt die dokumentierte
 Gateway-Basis, keinen mit diesem Rezept belegten Anlagenlauf. Der Status bleibt
 auch nach einem erfolgreichen lokalen Build durchdacht: Erst der Anlagenbeleg
 rechtfertigt **erprobt**. Für Desktop-Pins ist dieser Weg durchdacht, nicht belegt.
@@ -252,8 +251,7 @@ weder Code noch Prüfregeln.
   freigeben; `unknown`/`pending` → `ready` (belegt 29.10., JanuaPort/januaport#1230). Erst dann Stufenweg „gebaut“ und Rezept „erprobt“.
 - [ ] Separater Desktop-Beleg: bis dahin Windows ausdrücklich durchdacht.
 
-Lokale Messungen und Suchtreffer stehen im Umsetzungsbericht. Ein lokaler
-pandas-Lauf ersetzt weder einen Action-Lauf mit PR noch den Anlagenbeleg.
+Ein lokaler pandas-Lauf ersetzt weder einen Action-Lauf mit PR noch den Anlagenbeleg.
 
 ## 10. Grenzen
 
