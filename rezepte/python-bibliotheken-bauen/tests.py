@@ -303,7 +303,7 @@ def main(root):
         stumm = lambda *args, **kwargs: None
         originale = {name: getattr(module, name) for name in ("run", "lock_read", "compact", "compare", "report", "version_check")}
         module.run, module.lock_read, module.compact, module.compare = attrappe, stumm, stumm, stumm
-        module.report, module.version_check = (lambda *args, **kwargs: "Bericht\n"), stumm
+        module.report, module.version_check = (lambda *args, **kwargs: ""), stumm
         Path.rename, Path.replace = rename, replace
         try:
             try:
@@ -318,20 +318,37 @@ def main(root):
                 setattr(module, name, value)
         return folder, gescheitert
 
-    tausch = load(HERE / "bauen.py", "tausch")
-    for scheitert in ("wheels", "lock"):
-        folder, gescheitert = tausch_probe(tausch, f"tausch-{scheitert}", alt=True, scheitert=scheitert)
-        assert gescheitert, scheitert
-        assert sorted(p.name for p in (folder / "wheels").iterdir()) == ["alt.whl"], scheitert
-        assert (folder / "wheels" / "alt.whl").read_bytes() == b"alt", scheitert
-        assert (folder / "requirements.lock").read_text(encoding="ascii") == "alt\n", scheitert
-        assert sorted(p.name for p in folder.iterdir()) == ["requirements.in", "requirements.lock", "wheels"], scheitert
-    folder, gescheitert = tausch_probe(tausch, "tausch-erstbau", alt=False, scheitert="wheels")
-    assert gescheitert and sorted(p.name for p in folder.iterdir()) == ["requirements.in"]
-    folder, gescheitert = tausch_probe(tausch, "tausch-erfolg", alt=True, scheitert=None)
-    assert not gescheitert and [p.name for p in (folder / "wheels").iterdir()] == ["neu.whl"]
-    assert (folder / "requirements.lock").read_text(encoding="ascii") == "neu\n"
-    print("OK: scheitert der Tausch (zweites rename oder Lock-replace), bleiben alte Wheels und altes Lock am Ziel.")
+    def tausch_pruefen(module, tag):
+        for scheitert in ("wheels", "lock"):
+            folder, gescheitert = tausch_probe(module, f"{tag}-{scheitert}", alt=True, scheitert=scheitert)
+            assert gescheitert, scheitert
+            assert sorted(p.name for p in (folder / "wheels").iterdir()) == ["alt.whl"], scheitert
+            assert (folder / "wheels" / "alt.whl").read_bytes() == b"alt", scheitert
+            assert (folder / "requirements.lock").read_text(encoding="ascii") == "alt\n", scheitert
+            assert sorted(p.name for p in folder.iterdir()) == ["requirements.in", "requirements.lock", "wheels"], scheitert
+        folder, gescheitert = tausch_probe(module, f"{tag}-erstbau", alt=False, scheitert="wheels")
+        assert gescheitert and sorted(p.name for p in folder.iterdir()) == ["requirements.in"]
+        folder, gescheitert = tausch_probe(module, f"{tag}-erfolg", alt=True, scheitert=None)
+        assert not gescheitert and [p.name for p in (folder / "wheels").iterdir()] == ["neu.whl"]
+        assert (folder / "requirements.lock").read_text(encoding="ascii") == "neu\n"
+
+    tausch_pruefen(load(HERE / "bauen.py", "tausch"), "tausch")
+    # Je Rücknahmeschritt eine Probe: ohne ihn muss genau dieselbe Prüfung rot sein.
+    rollbacks = {
+        "Rückgabe der alten Wheels": '        if backup.exists():\n            backup.rename(old)\n',
+        "Verwerfen der neuen Wheels": '        if old.exists():\n            old.rename(stage / "verworfene-wheels")\n',
+    }
+    for index, (name, text) in enumerate(rollbacks.items()):
+        assert text in source, name
+        (mutation / "bauen.py").write_text(source.replace(text, "", 1), encoding="utf-8", newline="\n")
+        try:
+            tausch_pruefen(load(mutation / "bauen.py", f"tausch_mutant_{index}"), f"mutant-{index}")
+        except (AssertionError, OSError):
+            pass
+        else:
+            raise AssertionError(f"Mutation überlebt: {name}")
+    (mutation / "bauen.py").write_text(source, encoding="utf-8", newline="\n")
+    print(f"OK: scheitert der Tausch (zweites rename oder Lock-replace), bleiben alte Wheels und altes Lock am Ziel; {len(rollbacks)}/{len(rollbacks)} Mutationen rot.")
 
     def git(repo, *args):
         result = subprocess.run(["git", "-C", str(repo), *args], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

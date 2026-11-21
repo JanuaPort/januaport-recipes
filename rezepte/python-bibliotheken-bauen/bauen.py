@@ -238,6 +238,24 @@ def run(command, cwd):
     return result.stdout
 
 
+def publish(stage, folder):
+    # Das Lock-replace ist atomar und lässt das alte Lock bei Fehler stehen; es kommt deshalb zuletzt,
+    # und nur die Wheels brauchen die Rücknahme. Sie liegt hier, weil der Temp-Ordner das Alte sonst mitnimmt.
+    old = folder / "wheels"
+    backup = stage / "alte-wheels"
+    if old.exists():
+        old.rename(backup)
+    try:
+        (stage / "wheels").rename(old)
+        (stage / "requirements.lock").replace(folder / "requirements.lock")
+    except BaseException:
+        if old.exists():
+            old.rename(stage / "verworfene-wheels")
+        if backup.exists():
+            backup.rename(old)
+        raise
+
+
 def build(folder, target):
     input_check(folder)
     output_check(folder)
@@ -275,12 +293,8 @@ def build(folder, target):
         run(download + ["-d", "wheels"], probe)
         compare(stage, target, probe)
         summary = report(stage, target)
-        old = folder / "wheels"
         output_check(folder)
-        if old.exists():
-            old.rename(stage / "alte-wheels")
-        (stage / "wheels").rename(old)
-        (stage / "requirements.lock").replace(folder / "requirements.lock")
+        publish(stage, folder)
         print(summary, end="")
 
 
