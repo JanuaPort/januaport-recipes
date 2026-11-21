@@ -270,6 +270,69 @@ def main(root):
         (mutation / "bauen.py").write_text(source, encoding="utf-8", newline="\n")
     print("OK: private Index-/Python-Umgebungsoptionen am echten Kindprozess entfernt; Mutation rot.")
 
+    def tausch_probe(module, label, *, alt, scheitert):
+        """build() bis zum Tausch an einer Attrappe; scheitert das genannte rename/replace, bleibt das alte Paar am Ziel."""
+        folder = root / label
+        folder.mkdir()
+        (folder / "requirements.in").write_text("demo\n", encoding="ascii")
+        if alt:
+            (folder / "wheels").mkdir()
+            (folder / "wheels" / "alt.whl").write_bytes(b"alt")
+            (folder / "requirements.lock").write_text("alt\n", encoding="ascii")
+
+        def attrappe(command, cwd):
+            if "compile" in command:
+                (cwd / "requirements.lock").write_text("neu\n", encoding="ascii")
+            else:
+                (cwd / "wheels").mkdir(exist_ok=True)
+                (cwd / "wheels" / "neu.whl").write_bytes(b"neu")
+            return ""
+
+        echtes_rename, echtes_replace = Path.rename, Path.replace
+
+        def rename(self, target):
+            if scheitert == "wheels" and self.name == "wheels" and self.parent.name.startswith(".wheels-bau-"):
+                raise OSError("rename gescheitert")
+            return echtes_rename(self, target)
+
+        def replace(self, target):
+            if scheitert == "lock" and Path(target).name == "requirements.lock":
+                raise OSError("replace gescheitert")
+            return echtes_replace(self, target)
+
+        stumm = lambda *args, **kwargs: None
+        originale = {name: getattr(module, name) for name in ("run", "lock_read", "compact", "compare", "report", "version_check")}
+        module.run, module.lock_read, module.compact, module.compare = attrappe, stumm, stumm, stumm
+        module.report, module.version_check = (lambda *args, **kwargs: "Bericht\n"), stumm
+        Path.rename, Path.replace = rename, replace
+        try:
+            try:
+                module.build(folder, "linux")
+            except OSError:
+                gescheitert = True
+            else:
+                gescheitert = False
+        finally:
+            Path.rename, Path.replace = echtes_rename, echtes_replace
+            for name, value in originale.items():
+                setattr(module, name, value)
+        return folder, gescheitert
+
+    tausch = load(HERE / "bauen.py", "tausch")
+    for scheitert in ("wheels", "lock"):
+        folder, gescheitert = tausch_probe(tausch, f"tausch-{scheitert}", alt=True, scheitert=scheitert)
+        assert gescheitert, scheitert
+        assert sorted(p.name for p in (folder / "wheels").iterdir()) == ["alt.whl"], scheitert
+        assert (folder / "wheels" / "alt.whl").read_bytes() == b"alt", scheitert
+        assert (folder / "requirements.lock").read_text(encoding="ascii") == "alt\n", scheitert
+        assert sorted(p.name for p in folder.iterdir()) == ["requirements.in", "requirements.lock", "wheels"], scheitert
+    folder, gescheitert = tausch_probe(tausch, "tausch-erstbau", alt=False, scheitert="wheels")
+    assert gescheitert and sorted(p.name for p in folder.iterdir()) == ["requirements.in"]
+    folder, gescheitert = tausch_probe(tausch, "tausch-erfolg", alt=True, scheitert=None)
+    assert not gescheitert and [p.name for p in (folder / "wheels").iterdir()] == ["neu.whl"]
+    assert (folder / "requirements.lock").read_text(encoding="ascii") == "neu\n"
+    print("OK: scheitert der Tausch (zweites rename oder Lock-replace), bleiben alte Wheels und altes Lock am Ziel.")
+
     def git(repo, *args):
         result = subprocess.run(["git", "-C", str(repo), *args], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         assert result.returncode == 0, result.stdout
