@@ -44,7 +44,7 @@ Prüflauf vom 21.11.2026: beide Apps bestehen Lade-Regel,
 Manifestprüfung nach Zielbindung und Import als gestoppte Fassung.
 Steuer-App: 5 Dateien, 10279 Quellbytes, TAR 20480 Bytes.
 Monitor-App: 5 Dateien, 8571 Quellbytes, TAR 20480 Bytes.
-Alle 52 Mutationsproben ohne Browser wurden erkannt; anschließend liefen Quell-,
+Alle 66 Mutationsproben ohne Browser wurden erkannt (mit den Quellregeln aus JanuaPort/januaport#1495); anschließend liefen Quell-,
 Paket-, Kern- und MCP-Adapterprüfung wieder grün. Die Browserprüfung war nicht Teil
 dieses Laufs; ein Anlagenbeleg steht weiterhin aus.
 
