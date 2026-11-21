@@ -24,6 +24,13 @@ class PackageRules(unittest.TestCase):
                 self.assertTrue(entry.isfile())
                 self.assertEqual((entry.mode, entry.uid, entry.gid, entry.mtime), (0o644, 0, 0, 0))
 
+    def test_bytewise_posix_path_order(self):
+        (self.root / "a").mkdir()
+        for name in ["a/b.txt", "a-b.txt", "B.txt", "c.txt"]:
+            (self.root / name).write_text(name, encoding="utf-8")
+        with tarfile.open(fileobj=io.BytesIO(pack(self.root)), mode="r:") as archive:
+            self.assertEqual(archive.getnames(), ["B.txt", "a-b.txt", "a/b.txt", "c.txt"])
+
     def test_file_budget(self):
         for i in range(1001):
             (self.root / f"{i}.txt").touch()

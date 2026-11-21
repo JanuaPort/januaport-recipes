@@ -40,12 +40,13 @@ Der Browsertest verwendet synthetische MCP-Antworten eines lokalen HTTP-Servers.
 Er ersetzt weder SSO- noch Berechtigungsprüfungen auf einer laufenden Anlage.
 Der Importtest verwendet den **echten SQLite-Adapter**, keine Store-Mocks.
 
-Prüflauf vom 04.11.2026: beide Apps bestehen Lade-Regel, Manifestprüfung nach
-Zielbindung und Import als gestoppte Fassung. Steuer-App: 5 Dateien, 6782 Bytes,
-TAR 20480 Bytes. Monitor-App: 5 Dateien, 5175 Bytes, TAR 10240 Bytes.
-Alle 34 Mutationsproben wurden erkannt; anschließend liefen Quell-, Paket-,
-Kern- und Browserprüfung wieder grün. Der Namens-Grep über den gesamten
-Änderungsdiff ergab keine Treffer. Ein Anlagenbeleg steht weiterhin aus.
+Prüflauf vom 21.11.2026: beide Apps bestehen Lade-Regel,
+Manifestprüfung nach Zielbindung und Import als gestoppte Fassung.
+Steuer-App: 5 Dateien, 10279 Quellbytes, TAR 20480 Bytes.
+Monitor-App: 5 Dateien, 8571 Quellbytes, TAR 20480 Bytes.
+Alle 67 Mutationsproben ohne Browser wurden erkannt (mit den Quellregeln aus JanuaPort/januaport#1495); anschließend liefen Quell-,
+Paket-, Kern- und MCP-Adapterprüfung wieder grün. Die Browserprüfung war nicht Teil
+dieses Laufs; ein Anlagenbeleg steht weiterhin aus.
 
 ## Prüfumfang
 
@@ -58,7 +59,7 @@ Kern- und Browserprüfung wieder grün. Der Namens-Grep über den gesamten
 | Import bleibt gestoppt, auch Wiederimport einer Live-App | `TestImportStopped`, für CLI-/REST-/Admin-MCP-Herkunft; `TestExamples` |
 | Neue Bindung, leere Exportbindung, deterministischer Export | `TestBindingAndExport` |
 | Links, Duplikate, Pfadausbruch, Mengenüberschreitung | `TestArchiveReject`, tatsächlich verbotene TARs an `ImportRecipe` |
-| Inline-Script, Ereignisattribute, JavaScript-URL, PNG/ICO, NUL, ungültiges UTF-8 | zusätzliche echte Quellprüfung in `policy.py` mit Negativfällen in `test_policy.py` |
+| Inline-Script, Ereignisattribute, PNG/ICO, NUL, ungültiges UTF-8; `script src` nur als relativer eigener Pfad auf `.js` (kein Schema, kein `//`, kein führendes `/`, kein `..`, kein `%`); URL-Attribute (`href`, `src`, `action`, `formaction`, `xlink:href`, `poster`, `data`, `background`, `cite`) nur als relativer Pfad, Fragment oder `http`/`https`/`mailto`, auch bei Tab, Zeilenumbruch, Steuerzeichen, Zeichenreferenz oder Großschreibung im Schema; `srcdoc`, `<object>`, `<embed>`, `<base>`, `meta http-equiv=refresh` | zusätzliche echte Quellprüfung in `policy.py` mit Negativ- und Positivfällen in `test_policy.py`; je Regel eine Mutation in `check.py --mutations` |
 | Bestätigung, Abbrechen, Einfachversand, fehlende Deckung, Abweisung, Lesen, Textausgabe | `browser.mjs` im echten Browser; erwartete HTTP-Werkzeugnamen und Argumente werden verglichen |
 
 Die Mutationsproben entfernen jede getestete Sperre in temporären Kopien oder
@@ -99,8 +100,8 @@ einer tatsächlich gesperrten, dargestellten Schaltfläche.
 
 Die Einrichtung von Träger, Teams, passenden Pins, Browser-Apphost und SSO sowie
 das ausdrückliche Live-Schalten und der Anlagenbeleg bleiben Betreiberaufgaben.
-Ein App-spezifisches Muster ist in den gelesenen Kernstellen nicht beschrieben;
-die Musterlisten der Beispiele sind daher leer.
+Beide App-Rezepte verweisen im YAML-Kopf auf `muster: [app-bauen]`;
+das Muster `wissen_get muster/app-bauen` wird seit Kern 0.93.0 mitgeliefert.
 
 ## Suchstellen für Invarianten und weitere Wege
 

@@ -70,16 +70,19 @@ rezepte/<name>/
 ```
 
 Quelle ist das Austauschformat des Kerns: `jnpt app export <name> --out <datei>`
-liefert ein deterministisches, **unkomprimiertes TAR**. Es enthält lexikografisch
-sortierte reguläre Dateien relativ zum App-Ordner, mit Modus 0644, mtime/uid/gid 0.
+liefert ein deterministisches, **unkomprimiertes TAR**. Es enthält bytegenau lexikografisch
+nach POSIX-Pfad sortierte reguläre Dateien relativ zum App-Ordner, mit Modus 0644, mtime/uid/gid 0.
 Im Manifest ist `teams` die leere Liste; `token_id` entfällt. Die veröffentlichten
 Quellen entsprechen diesem ungebundenen Baum. Archive werden lokal daraus erzeugt,
 nicht im Katalog abgelegt. `pruefung/app-rezepte/pack.py` erzeugt diesen TAR-Vertrag.
 
 `jnpt.app.json` ist geschlossenes JSON mit höchstens 8192 Bytes. Felder:
 `name`, `fenster` (`browser`, `pc`, `beide`), `modus` (`a`, `b`), `teams`,
-`werkzeuge`, `skripte` und im gebundenen Modus a `token_id`. Bezeichner folgen
+`werkzeuge`, `skripte`, optional `tasten` und im gebundenen Modus a `token_id`. Bezeichner folgen
 `[a-z0-9_]{1,48}`; der Rezeptordner verwendet weiter Bindestriche.
+`tasten` (ab Kern 0.97.0) ordnet als Liste aus `{taste, pin, setup}` eindeutige
+Kürzel aus `Strg+Alt+F1` bis `Strg+Alt+F12` dem Setup-Menüweg am Windows-Gerät zu;
+`pin` und `setup` folgen `[a-z0-9_]{1,48}`, zusätzliche Rechte vergibt das Feld nicht.
 Für Browser-Apps wählen die Rezepte App-Namen aus `[a-z0-9]{1,48}`:
 Der App-Name wird Hostname unter `apps.<Domain>`, wo Unterstriche ungeeignet sind.
 Die Beispiele heißen `steuer` und `monitor`; ihre Rezeptordner bleiben
@@ -113,6 +116,10 @@ Auch eine leere Liste offener Punkte ersetzt diese Prüfung nicht.
 Für diese Quellen gelten höchstens **4 MiB und 1000 Dateien**, auch das fertige
 TAR bleibt höchstens 4 MiB. Eigene `.js`-Dateien ersetzen Inline-Scripts;
 Ereignisattribute und `javascript:`-Adressen werden ebenfalls abgewiesen.
+Scripts werden nur als relative eigene `.js`-Dateien eingebunden; in URL-Attributen
+sind nur relative Pfade, Fragmente sowie `http`, `https` und `mailto` erlaubt.
+Eingebettete Dokumente (`srcdoc`, `<object>`, `<embed>`, `<base>`,
+`meta http-equiv=refresh`) werden abgewiesen.
 Erlaubt sind Textquellen einschließlich SVG; Binärdateien wie PNG und ICO sowie
 Geheimnismuster gehören nicht hinein. Die Prüfung nutzt die echte
 `skriptspeicher.PruefeAppDateien`- und `apps.ParseManifest`-Implementierung des
@@ -132,7 +139,7 @@ Der Kopf trägt nur, was ein späterer Katalog maschinell braucht. Alles andere 
 | `name` | ja | gleich dem Ordnernamen, `[a-z0-9-]` |
 | `titel` | ja | ein Satz, was aufgebaut wird |
 | `ziel` | ja | ein Satz Ziel, wer was tut |
-| `stufe` | ja | Stufe des Stufenwegs, für Rezepte meist `3` |
+| `stufe` | ja | Stufe des Stufenwegs: `1` „Sicher verbinden“, `2` „Gemeinsam bauen“ (Use Cases und Abläufe bauen), `3` „Überblick behalten“; Rezepte meist `2`, Überwachungs-/Monitor-Rezepte `3` |
 | `stand` | ja | `durchdacht` (ausgearbeitet, kein Lauf) · `erprobt` (gegen eine Anlage gelaufen) · `belegt` (im Betrieb bei einem Kunden) |
 | `version` | ja | SemVer des Rezepts |
 | `jnpt_ab` | ja | kleinste JanuaPort-Version, gegen die der Stand gilt |

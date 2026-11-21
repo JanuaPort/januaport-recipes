@@ -3,8 +3,8 @@ name: python-bibliotheken-bauen
 titel: Python-Bibliotheken bequem als Wheels und Hash-Lock bauen
 ziel: Der Betreiber nennt Pakete, der Build liefert geprüfte Wheels und ein Lock als Pull Request für Skript-Pins.
 stufe: 2
-stand: durchdacht
-version: 0.1.0
+stand: erprobt
+version: 0.1.1
 jnpt_ab: "0.85.0"
 muster: [skript-als-abnehmer]
 integrationen: []
@@ -15,11 +15,10 @@ beisteller: [januaport-plugins/script-runner, januaport-plugins/desktop-runner]
 
 ## 0. Stand und Einordnung
 
-**Durchdacht**, Stufe 2 „Gemeinsam bauen“, **im Bau** bis dieses Rezept gemergt
-ist (#1230). Nicht release-blockierend. `jnpt_ab` benennt die dokumentierte
-Gateway-Basis, keinen mit diesem Rezept belegten Anlagenlauf. Der Status bleibt
-auch nach einem erfolgreichen lokalen Build durchdacht: Erst der Anlagenbeleg
-rechtfertigt **erprobt**. Für Desktop-Pins ist dieser Weg durchdacht, nicht belegt.
+**Erprobt** für Linux-Server-Pins, Stufe 2 „Gemeinsam bauen“: Am Showcase wurde am
+29.10.2026 ein so gebauter Skriptordner (`pandas_echo`) gepinnt, ging auf `ready` und
+lieferte über `/mcp` das erwartete Ergebnis (JanuaPort/januaport#1230). `jnpt_ab` benennt
+die dokumentierte Gateway-Basis. Für Desktop-Pins ist dieser Weg durchdacht, nicht belegt.
 
 Das Muster `skript-als-abnehmer` (`wissen_get muster/skript-als-abnehmer`)
 beschreibt Python als begrenzten Werkzeug-Abnehmer und die Freigabe durch einen
@@ -232,6 +231,7 @@ weder Code noch Prüfregeln.
 | Größe oder Dateizahl überschritten | ZIP-Inhalt gelesen | Abbruch; Paketmenge verkleinern |
 | uv-Version anders | Versionsprüfung | uv 0.11.3 bereitstellen |
 | PyPI/GitHub nicht erreichbar | Unterprozessfehler | Lauf gescheitert, nach Klärung erneut starten |
+| Ausgabe lässt sich nicht tauschen (Umbenennen oder Lock scheitert) | Dateisystemfehler beim Tausch | neue Wheels verworfen, alte Wheels und altes Lock bleiben unverändert; Ursache klären, neu bauen |
 | Token darf keinen PR öffnen | gh-Schritt | Warnung „PR nicht angelegt“, Lauf bleibt grün; Mensch öffnet den PR über den Link in der Zusammenfassung |
 | Zweig lässt sich nicht pushen | git-push-Schritt | Lauf rot; Admin prüft `contents: write` des Aufrufers |
 | Pin bleibt unknown, pending oder ungültig | Pin-Liste des Läufers | Admin prüft Grund nach Läufer-README, keine Nachinstallation |
@@ -244,16 +244,15 @@ weder Code noch Prüfregeln.
 - [ ] Mutationsproben entfernen jede geprüfte Sperre in einer temporären Kopie;
   die zugehörige Verbotsassertion wird rot, unveränderte Fassung wieder grün.
 - [ ] shellcheck für Shell-Dateien, actionlint für Workflow.
-- [ ] Echter pandas-Build im Rezept-Repository per Action: PR (dort per
+- [x] Echter pandas-Build im Rezept-Repository per Action ([Lauf 40833959458](https://github.com/JanuaPort/januaport-recipes/actions/runs/40833959458), 29.10.): PR (dort per
   Compare-Link, die Org sperrt Actions-PRs) und Gegenprobe grün;
   Wheels ausschließlich im temporären Test-PR, nicht in den Rezeptkatalog mergen.
-- [ ] Echter sdist-Negativlauf mit verständlicher Meldung.
-- [ ] Nach Merge: Abnahme am Showcase, Pin eines so gebauten Skriptordners
-  freigeben; `unknown`/`pending` → `ready` (belegt 29.10., JanuaPort/januaport#1230). Erst dann Stufenweg „gebaut“ und Rezept „erprobt“.
+- [x] Echter sdist-Negativlauf mit verständlicher Meldung ([Lauf 40834366190](https://github.com/JanuaPort/januaport-recipes/actions/runs/40834366190), 29.10.).
+- [x] Nach Merge: Abnahme am Showcase, Pin eines so gebauten Skriptordners
+  freigeben; `unknown` → `ready` (belegt 29.10., JanuaPort/januaport#1230). Damit Rezept „erprobt“ für Linux.
 - [ ] Separater Desktop-Beleg: bis dahin Windows ausdrücklich durchdacht.
 
-Lokale Messungen und Suchtreffer stehen im Umsetzungsbericht. Ein lokaler
-pandas-Lauf ersetzt weder einen Action-Lauf mit PR noch den Anlagenbeleg.
+Ein lokaler pandas-Lauf ersetzt weder einen Action-Lauf mit PR noch den Anlagenbeleg.
 
 ## 10. Grenzen
 

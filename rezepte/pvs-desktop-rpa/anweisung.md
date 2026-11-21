@@ -32,7 +32,10 @@ Instanz umschalten. Keine Programme starten, keine zweite Instanz, keine festen
 Koordinaten. Unterschiedliche DPI sind Adapter-Parameter.
 
 Jede Adapter-Methode bekommt dieselbe Deadline von fünf Sekunden pro Lauf.
-Bei Dialog, Sperre, fehlender Bereitschaft, Zeitlimit oder unklarer Wirkung
+Bei UC1 bleibt ein gesperrter Datensatz mit `gesperrt` liegen; die übrigen Einträge
+laufen weiter. Auch ein einzelner halb gefüllter Eintrag bleibt nach seiner
+Wartegrenze mit `zeitlimit` liegen, während die übrigen weiterlaufen.
+Bei Dialog, fehlender Bereitschaft, Zeitlimit des ganzen Laufs oder unklarer Wirkung
 anhalten. Nicht raten, ins Leere klicken, Dialoge wegklicken oder selbst anmelden.
 Nach Teilwirkung keine automatische Wiederholung. Ein Lauf zur Zeit und `busy`
 bei längerem Lauf organisiert der Läufer.
@@ -46,7 +49,9 @@ auch durch tatsächliches Auslösen. Behaupte keine Prüfung am echten Adapter:
 er kommt erst außerhalb dieses öffentlichen Repositorys in Sprint 1.
 Der Ergebnisweg ist offen: `ergebnis_abgeben` gibt lokal nur Zähler-JSON aus;
 stdout wird vom Läufer verworfen. Eingabe aus `januaport.input` und fachliche
-Rückgabe erst nach bestätigtem Vertrag anbinden. `jnpt.ergebnis` ist nicht belegt.
+Rückgabe erst nach bestätigtem Vertrag anbinden. Die [Client-README](https://github.com/JanuaPort/januaport-plugins/blob/main/desktop-runner/README.md)
+dokumentiert `jnpt.ergebnis(wert)` für JSON bis 64 KiB; normale Aufträge verwerfen
+gültige Werte still. Ihr fachlicher Ergebnisweg bleibt offen.
 Keine Zugangsdaten oder zusätzlichen Rechte erfinden.
 
 Der Betreiber verantwortet Lizenzbedingungen, echte Setups und Betriebsfreigabe.
