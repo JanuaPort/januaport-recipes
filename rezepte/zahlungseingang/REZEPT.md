@@ -2,9 +2,9 @@
 name: zahlungseingang
 titel: Zahlungseingänge zuordnen und in einem Fachsystem ohne Schnittstelle buchen lassen
 ziel: Die KI ordnet jeden Geldeingang aus dem Kontoauszug einem Beleg zu, ein Mensch gibt je Fall frei, ein Roboter bucht im Fachsystem.
-stufe: 3
+stufe: 2
 stand: erprobt
-version: 0.1.0
+version: 0.1.1
 jnpt_ab: "0.53.0"
 muster: [arbeitsliste-rpa, abholer-als-beisteller, skript-als-abnehmer, rueckfrage-per-entwurf]
 integrationen:
@@ -38,7 +38,7 @@ Version 0.53.0. Kunde, Ort und Fachsystem nennen wir nicht. Satzart, Anweisung u
 sind für die Veröffentlichung neu geschrieben; Feldnamen und Texte weichen vom Pilot ab, der
 Ablauf im Kern nicht.
 
-**Stufe 3 — Use Cases bauen.** Das Rezept setzt vier Muster übereinander, die jede
+**Stufe 2 — Gemeinsam bauen.** Das Rezept setzt vier Muster übereinander, die jede
 JanuaPort-Anlage mitliefert (`wissen_get muster/<name>`):
 
 | Muster | Was es hier beiträgt |
@@ -137,16 +137,16 @@ Flow).
 
 | Schritt | Eingabe | Ausgabe (eine Zeile JSON) | Invariante |
 |---|---|---|---|
-| 1 Arbeitsliste | – | `lauf`, `anzahl`, `saetze[]` mit `id`, `beleg_nummer`, `nummer_art`, `betrag`, `buchungsdatum` | bricht ab, wenn ein Satz in `in_buchung` steht; holt in Schleifen bis leer (Suche liefert höchstens 100) |
-| 2 Satz sperren | `lauf`, `id` | `id`, `beleg_nummer`, `nummer_art`, `betrag`, `buchungsdatum`, frisch gelesen | liest vorher; nur `geprueft` mit leerer `buchungs_nr` → `in_buchung` + `roboter_lauf` |
+| 1 Arbeitsliste | – | `lauf`, `anzahl`, `saetze[]` mit `id`, `beleg_nummer`, `nummer_art`, `betrag`, `buchungsdatum` | bricht ab, wenn ein Satz in `in_buchung` steht; holt einmal höchstens 100 freigegebene Sätze, der Rest folgt im nächsten geplanten Lauf |
+| 2 Satz sperren | `lauf`, `id` | `id`, `beleg_nummer`, `nummer_art`, `betrag`, `buchungsdatum`, frisch gelesen | liest vorher; nur `geprueft` mit leerer `buchungs_nr` → `in_buchung` + `roboter_lauf`; ein Satz mit schon gesetzter `buchungs_nr` wird nicht gesperrt, der Lauf bricht ab, bis ein Mensch den Satz in der Kartei berichtigt (ab kartei-rpa mit JanuaPort/januaport#1514) |
 | 3 Satz verbuchen | `lauf`, `id`, `buchungs_nr` | `id`, `status` | liest vorher; nur eigener Lauf; `buchungs_nr` war leer |
 | 4 Satz-Fehler | `lauf`, `id`, Schrittname, Meldung | `id`, `status` | liest vorher; nur eigener Lauf; Meldung ohne Kundendaten → `fehler_text` |
 
 Scheitert ein Schritt (fremder Lauf, falscher Status, Anlage nicht erreichbar), bricht er mit einem
 Skriptfehler ab, und der Flow beendet den Lauf.
 
-Für alle vier gilt: Jedes Schreiben liest vorher und schickt alle Felder zurück (`update`
-überschreibt vollständig), `source = roboter:buchung`, `as_of` = Laufdatum, kein Retry auf
+Für alle vier gilt: Jedes Schreiben liest vorher und prüft Status und Lauf; `update` führt zusammen
+(seit Kern #930: nicht genannte Felder behalten ihren Wert), der Roboter schickt die gelesenen Felder trotzdem mit zurück (unschädlich), `source = roboter:buchung`, `as_of` = Laufdatum, kein Retry auf
 Schreibaufrufe, und der Token erscheint nie in Log oder Ausgabe. Den Transport (drei
 HTTP-Anfragen gegen `/mcp`) beschreibt das Muster `skript-als-abnehmer`, die PAD-Fallen das
 mitgelieferte Wissen `power-automate-desktop`. Die Tabelle fasst zusammen, was der Flow von den

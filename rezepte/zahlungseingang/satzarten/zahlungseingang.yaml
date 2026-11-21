@@ -4,7 +4,9 @@
 #
 # Bewusst OHNE freigabe-Ebene: Zugriff entsteht nur ueber tool-genau vergebene
 # Scopes. Mit "freigabe: team" bekaeme der Roboter als Team-Mitglied auch add und
-# delete, und das laesst sich nicht werkzeug-genau zuruecknehmen.
+# delete; zuruecknehmen liesse sich das nur je Zugang ueber die Detailmatrix
+# (jnpt kartei access deny ... write, dann _add/_update als Scopes, Kern docs/kartei.md).
+# Ohne Ebene gibt es diesen Umweg nicht.
 name: zahlungseingang
 description: >-
   Arbeitsliste fuer Zahlungseingaenge. Ein Satz je Geldeingang (richtung CRDT, status BOOK)

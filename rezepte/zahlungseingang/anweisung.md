@@ -31,11 +31,14 @@ Nummer, Nummernart und Trefferart. Setze `status = geprueft` nur für Sätze, di
 <freigebende Rolle> **einzeln** oder in einer **ausdrücklichen Aufzählung von Schlüsseln**
 bestätigt hat. Eine Pauschale wie „alle passt" lehnst du ab und fragst nach der Liste.
 Korrigiert der Mensch Nummer oder Art, setzt du `trefferart = manuell`. Für `geprueft`
-müssen `beleg_nummer` und `nummer_art` gesetzt sein. Nenne danach: „N Sätze auf geprueft
+müssen `beleg_nummer` und `nummer_art` gesetzt sein und `trefferart` muss `eindeutig` oder
+`manuell` sein; einen Satz mit `mehrdeutig` oder `kein_treffer` gibst du erst frei, wenn der
+Mensch Nummer und Art bestätigt oder korrigiert hat (dann `manuell`). Nenne danach: „N Sätze auf geprueft
 gesetzt: <Schlüssel …>".
 
-**Schreiben.** `<satzart>_update` überschreibt den Satz vollständig. Lies ihn deshalb immer
-zuerst mit `<satzart>_get` und schicke alle Felder zurück. Setze `source = ki:zahlungseingang`
+**Schreiben.** `<satzart>_update` führt zusammen: Nur die genannten Felder ändern sich, die
+übrigen behalten ihren Wert. Lies den Satz trotzdem immer zuerst mit `<satzart>_get`, prüfe
+seinen Status und schicke nur die Felder, die du ändern willst. Setze `source = ki:zahlungseingang`
 und `as_of` = Datum des Auszugs. Wiederhole einen Schreibaufruf nach einem Fehler oder
 Timeout nicht, sondern lies den Satz neu und arbeite mit dem Stand, den du vorfindest.
 
