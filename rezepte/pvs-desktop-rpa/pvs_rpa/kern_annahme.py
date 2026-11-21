@@ -65,9 +65,13 @@ def run_annahme(adapter: PVSAdapter, *, nur_melden: bool = True,
         adapter.bereit(deadline)
         kennungen = tuple(adapter.anmeldungen(deadline))
         gesehen = set()
+        zeitlimit_gezaehlt = False
         for kennung in kennungen:
             if uhr() >= deadline:
+                if zeitlimit_gezaehlt:
+                    break  # der Eintrag davor hat das Ablaufen schon gezählt; der Rest ist unbearbeitet
                 raise Zeitlimit
+            zeitlimit_gezaehlt = False
             if type(kennung) is not str or not kennung:
                 zaehle(ergebnis, Code.UNBEKANNT)
                 continue
@@ -81,6 +85,7 @@ def run_annahme(adapter: PVSAdapter, *, nur_melden: bool = True,
                 # Ein einzelner gesperrter oder halber Eintrag bleibt liegen; sonst endete jeder Takt an ihm.
                 code = fehlercode(fehler, annahme=True)
             zaehle(ergebnis, code)
+            zeitlimit_gezaehlt = code == Code.ZEITLIMIT
     except BaseException as fehler:
         zaehle(ergebnis, fehlercode(fehler, annahme=True))
     return ergebnis

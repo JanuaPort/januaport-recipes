@@ -209,6 +209,12 @@ class AnnahmeTests(unittest.TestCase):
         self.assertEqual(annahme(mock), {"codes": {"zeitlimit": 2, "wuerde_annehmen": 1}})
         self.assertEqual(mock.aufrufe.count("lese_anmeldung"), 2)
 
+    def test_ungueltige_kennung_nach_halbem_eintrag_verdeckt_spaeteres_lauflimit_nicht(self):
+        mock = MockAdapter([befund(vollstaendig=False), befund(kennung=ANDERE)], reihenfolge=[KENNUNG, "", ANDERE])
+        zeiten = iter([0, 0, 1, 6])  # Lauf, Kopf 1, Kopf 2, Kopf 3 mit abgelaufenem Limit
+        self.assertEqual(run_annahme(mock, uhr=lambda: next(zeiten)), {"codes": {"zeitlimit": 2, "unbekannt": 1}})
+        self.assertEqual(mock.aufrufe.count("lese_anmeldung"), 1)
+
     def test_kern_prueft_deadline_vor_lesen(self):
         mock = MockAdapter([befund()])
         zeiten = iter([0, 6])

@@ -54,7 +54,14 @@ for name, bedingung in (
 PROBEN.append(("fakten-typ", "pvs_rpa.kern_annahme",
                'if any(type(getattr(eintrag, f.name)) is not bool for f in fields(Anmeldung)\n           if f.name not in ("kennung", "revision")):',
                "if False:"))
-PROBEN.append(("doppelte-karte", "pvs_rpa.kern_annahme", "if kennung in gesehen:", "if False:"))
+PROBEN.extend([
+    ("zeitlimit-doppelt-gezaehlt", "pvs_rpa.kern_annahme", "if zeitlimit_gezaehlt:", "if False:"),
+    ("zeitlimit-merker-immer", "pvs_rpa.kern_annahme",
+     "zeitlimit_gezaehlt = code == Code.ZEITLIMIT", "zeitlimit_gezaehlt = True"),
+    ("zeitlimit-merker-nicht-zurueckgesetzt", "pvs_rpa.kern_annahme",
+     "zeitlimit_gezaehlt = False\n            if type", "if type"),
+])
+PROBEN.append(("doppelte-karte","pvs_rpa.kern_annahme", "if kennung in gesehen:", "if False:"))
 
 for name, bedingung in (
     ("setup-geschlossen", "type(setup) is not str or setup not in SETUPS"),
