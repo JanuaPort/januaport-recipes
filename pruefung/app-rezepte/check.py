@@ -173,6 +173,7 @@ def mutations(core, work, env):
     shutil.copyfile(HERE / "test_pack.py", work / "test_pack.py")
     package_source = (HERE / "pack.py").read_text(encoding="utf-8")
     package_cases = [
+        ("Sortierung", ", key=lambda p: p.relative_to(source).as_posix())", ")", "test_bytewise_posix_path_order"),
         ("Dateizahl", "if len(files) > 1000 or", "if False or", "test_file_budget"),
         ("Quellbudget", "if len(files) > 1000 or sum(p.stat().st_size for p in files) > 4 * 1024 * 1024:", "if False:", "test_source_budget"),
         ("Archivbudget", "if len(result) > 4 * 1024 * 1024:", "if False:", "test_archive_budget"),

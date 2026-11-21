@@ -70,8 +70,8 @@ rezepte/<name>/
 ```
 
 Quelle ist das Austauschformat des Kerns: `jnpt app export <name> --out <datei>`
-liefert ein deterministisches, **unkomprimiertes TAR**. Es enthält lexikografisch
-sortierte reguläre Dateien relativ zum App-Ordner, mit Modus 0644, mtime/uid/gid 0.
+liefert ein deterministisches, **unkomprimiertes TAR**. Es enthält bytegenau lexikografisch
+nach POSIX-Pfad sortierte reguläre Dateien relativ zum App-Ordner, mit Modus 0644, mtime/uid/gid 0.
 Im Manifest ist `teams` die leere Liste; `token_id` entfällt. Die veröffentlichten
 Quellen entsprechen diesem ungebundenen Baum. Archive werden lokal daraus erzeugt,
 nicht im Katalog abgelegt. `pruefung/app-rezepte/pack.py` erzeugt diesen TAR-Vertrag.
