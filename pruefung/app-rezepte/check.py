@@ -143,6 +143,7 @@ def mutations(core, work, env):
         ('if tag == "script" and key == "src" and', 'if False and key == "src" and'),
         ('path.endswith(".js")', 'True'),
         ('and ":" not in path', 'and True'),
+        ('and "%" not in path', 'and True'),
         ('and not path.startswith("/")', 'and True'),
         ('and ".." not in path.split("/")', 'and True'),
         ('.replace("\\\\", "/")', ''),

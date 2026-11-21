@@ -43,6 +43,8 @@ class SourceRules(unittest.TestCase):
             "..\\x.js",
             "\\\\fremd.example\\x.js",
             "js/app.txt",
+            "%2e%2e/x.js",
+            "a/%2E%2E/%2e%2e/x.js",
         ]:
             with self.subTest(src=src), self.assertRaises(ValueError):
                 check_file("index.html", html(f'<script src="{src}"></script>'))

@@ -44,7 +44,7 @@ Prüflauf vom 21.11.2026: beide Apps bestehen Lade-Regel,
 Manifestprüfung nach Zielbindung und Import als gestoppte Fassung.
 Steuer-App: 5 Dateien, 10279 Quellbytes, TAR 20480 Bytes.
 Monitor-App: 5 Dateien, 8571 Quellbytes, TAR 20480 Bytes.
-Alle 66 Mutationsproben ohne Browser wurden erkannt (mit den Quellregeln aus JanuaPort/januaport#1495); anschließend liefen Quell-,
+Alle 67 Mutationsproben ohne Browser wurden erkannt (mit den Quellregeln aus JanuaPort/januaport#1495); anschließend liefen Quell-,
 Paket-, Kern- und MCP-Adapterprüfung wieder grün. Die Browserprüfung war nicht Teil
 dieses Laufs; ein Anlagenbeleg steht weiterhin aus.
 
@@ -59,7 +59,7 @@ dieses Laufs; ein Anlagenbeleg steht weiterhin aus.
 | Import bleibt gestoppt, auch Wiederimport einer Live-App | `TestImportStopped`, für CLI-/REST-/Admin-MCP-Herkunft; `TestExamples` |
 | Neue Bindung, leere Exportbindung, deterministischer Export | `TestBindingAndExport` |
 | Links, Duplikate, Pfadausbruch, Mengenüberschreitung | `TestArchiveReject`, tatsächlich verbotene TARs an `ImportRecipe` |
-| Inline-Script, Ereignisattribute, PNG/ICO, NUL, ungültiges UTF-8; `script src` nur als relativer eigener Pfad auf `.js` (kein Schema, kein `//`, kein führendes `/`, kein `..`); URL-Attribute (`href`, `src`, `action`, `formaction`, `xlink:href`, `poster`, `data`, `background`, `cite`) nur als relativer Pfad, Fragment oder `http`/`https`/`mailto`, auch bei Tab, Zeilenumbruch, Steuerzeichen, Zeichenreferenz oder Großschreibung im Schema; `srcdoc`, `<object>`, `<embed>`, `<base>`, `meta http-equiv=refresh` | zusätzliche echte Quellprüfung in `policy.py` mit Negativ- und Positivfällen in `test_policy.py`; je Regel eine Mutation in `check.py --mutations` |
+| Inline-Script, Ereignisattribute, PNG/ICO, NUL, ungültiges UTF-8; `script src` nur als relativer eigener Pfad auf `.js` (kein Schema, kein `//`, kein führendes `/`, kein `..`, kein `%`); URL-Attribute (`href`, `src`, `action`, `formaction`, `xlink:href`, `poster`, `data`, `background`, `cite`) nur als relativer Pfad, Fragment oder `http`/`https`/`mailto`, auch bei Tab, Zeilenumbruch, Steuerzeichen, Zeichenreferenz oder Großschreibung im Schema; `srcdoc`, `<object>`, `<embed>`, `<base>`, `meta http-equiv=refresh` | zusätzliche echte Quellprüfung in `policy.py` mit Negativ- und Positivfällen in `test_policy.py`; je Regel eine Mutation in `check.py --mutations` |
 | Bestätigung, Abbrechen, Einfachversand, fehlende Deckung, Abweisung, Lesen, Textausgabe | `browser.mjs` im echten Browser; erwartete HTTP-Werkzeugnamen und Argumente werden verglichen |
 
 Die Mutationsproben entfernen jede getestete Sperre in temporären Kopien oder

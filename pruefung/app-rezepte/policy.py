@@ -28,6 +28,7 @@ def is_own_js_file(src):
     return (
         path.endswith(".js")
         and ":" not in path
+        and "%" not in path
         and not path.startswith("/")
         and ".." not in path.split("/")
     )
