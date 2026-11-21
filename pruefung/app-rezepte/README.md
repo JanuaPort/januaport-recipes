@@ -58,7 +58,7 @@ Kern- und Browserprüfung wieder grün. Der Namens-Grep über den gesamten
 | Import bleibt gestoppt, auch Wiederimport einer Live-App | `TestImportStopped`, für CLI-/REST-/Admin-MCP-Herkunft; `TestExamples` |
 | Neue Bindung, leere Exportbindung, deterministischer Export | `TestBindingAndExport` |
 | Links, Duplikate, Pfadausbruch, Mengenüberschreitung | `TestArchiveReject`, tatsächlich verbotene TARs an `ImportRecipe` |
-| Inline-Script, Ereignisattribute, JavaScript-URL, PNG/ICO, NUL, ungültiges UTF-8 | zusätzliche echte Quellprüfung in `policy.py` mit Negativfällen in `test_policy.py` |
+| Inline-Script, Ereignisattribute, PNG/ICO, NUL, ungültiges UTF-8; `script src` nur als relativer eigener Pfad auf `.js` (kein Schema, kein `//`, kein führendes `/`, kein `..`); URL-Attribute (`href`, `src`, `action`, `formaction`, `xlink:href`, `poster`, `data`, `background`, `cite`) nur als relativer Pfad, Fragment oder `http`/`https`/`mailto`, auch bei Tab, Zeilenumbruch, Steuerzeichen, Zeichenreferenz oder Großschreibung im Schema; `srcdoc`, `<object>`, `<embed>`, `<base>`, `meta http-equiv=refresh` | zusätzliche echte Quellprüfung in `policy.py` mit Negativ- und Positivfällen in `test_policy.py`; je Regel eine Mutation in `check.py --mutations` |
 | Bestätigung, Abbrechen, Einfachversand, fehlende Deckung, Abweisung, Lesen, Textausgabe | `browser.mjs` im echten Browser; erwartete HTTP-Werkzeugnamen und Argumente werden verglichen |
 
 Die Mutationsproben entfernen jede getestete Sperre in temporären Kopien oder

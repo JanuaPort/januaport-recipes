@@ -8,7 +8,7 @@ from policy import check_tree
 
 def pack(source):
     check_tree(source)
-    files = sorted(p for p in source.rglob("*") if p.is_file())
+    files = sorted((p for p in source.rglob("*") if p.is_file()), key=lambda p: p.relative_to(source).as_posix())
     if len(files) > 1000 or sum(p.stat().st_size for p in files) > 4 * 1024 * 1024:
         raise ValueError("App-Budget überschritten")
     out = io.BytesIO()

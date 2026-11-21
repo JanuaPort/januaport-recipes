@@ -70,8 +70,8 @@ rezepte/<name>/
 ```
 
 Quelle ist das Austauschformat des Kerns: `jnpt app export <name> --out <datei>`
-liefert ein deterministisches, **unkomprimiertes TAR**. Es enthält lexikografisch
-sortierte reguläre Dateien relativ zum App-Ordner, mit Modus 0644, mtime/uid/gid 0.
+liefert ein deterministisches, **unkomprimiertes TAR**. Es enthält bytegenau lexikografisch
+nach POSIX-Pfad sortierte reguläre Dateien relativ zum App-Ordner, mit Modus 0644, mtime/uid/gid 0.
 Im Manifest ist `teams` die leere Liste; `token_id` entfällt. Die veröffentlichten
 Quellen entsprechen diesem ungebundenen Baum. Archive werden lokal daraus erzeugt,
 nicht im Katalog abgelegt. `pruefung/app-rezepte/pack.py` erzeugt diesen TAR-Vertrag.
@@ -113,6 +113,10 @@ Auch eine leere Liste offener Punkte ersetzt diese Prüfung nicht.
 Für diese Quellen gelten höchstens **4 MiB und 1000 Dateien**, auch das fertige
 TAR bleibt höchstens 4 MiB. Eigene `.js`-Dateien ersetzen Inline-Scripts;
 Ereignisattribute und `javascript:`-Adressen werden ebenfalls abgewiesen.
+Scripts werden nur als relative eigene `.js`-Dateien eingebunden; in URL-Attributen
+sind nur relative Pfade, Fragmente sowie `http`, `https` und `mailto` erlaubt.
+Eingebettete Dokumente (`srcdoc`, `<object>`, `<embed>`, `<base>`,
+`meta http-equiv=refresh`) werden abgewiesen.
 Erlaubt sind Textquellen einschließlich SVG; Binärdateien wie PNG und ICO sowie
 Geheimnismuster gehören nicht hinein. Die Prüfung nutzt die echte
 `skriptspeicher.PruefeAppDateien`- und `apps.ParseManifest`-Implementierung des

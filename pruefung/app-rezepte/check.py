@@ -139,9 +139,22 @@ def mutations(core, work, env):
     # Eigene Rezeptregeln in einer isolierten Kopie mutieren.
     policy_source = (HERE / "policy.py").read_text(encoding="utf-8")
     policy_cases = [
-        ('if tag == "script" and', 'if False and'),
-        ('if key.lower().startswith("on") or', 'if False or'),
-        ('(value or "").strip().lower().startswith("javascript:")', 'False'),
+        ('if tag == "script" and not any(', 'if False and not any('),
+        ('if tag == "script" and key == "src" and', 'if False and key == "src" and'),
+        ('path.endswith(".js")', 'True'),
+        ('and ":" not in path', 'and True'),
+        ('and not path.startswith("/")', 'and True'),
+        ('and ".." not in path.split("/")', 'and True'),
+        ('.replace("\\\\", "/")', ''),
+        ('if c > " "', 'if True'),
+        ('if tag in EMBEDDING_TAGS or', 'if False or'),
+        ('return tag == "meta" and', 'return False and'),
+        ('or key == "srcdoc":', 'or False:'),
+        ('if key.startswith("on") or', 'if False or'),
+        ('if key in URL_ATTRIBUTES and not is_allowed_url(value):', 'if False:'),
+        ('return not colon or', 'return False or'),
+        ('or bool(set(head) & set("/?#"))', 'or False'),
+        ('or head in URL_SCHEMES', 'or False'),
         ('if self.script and data.strip():', 'if False:'),
         ('if Path(name).suffix.lower() not in', 'if False and Path(name).suffix.lower() not in'),
         ('if "\\0" in text:', 'if False:'),
@@ -160,6 +173,7 @@ def mutations(core, work, env):
     shutil.copyfile(HERE / "test_pack.py", work / "test_pack.py")
     package_source = (HERE / "pack.py").read_text(encoding="utf-8")
     package_cases = [
+        ("Sortierung", ", key=lambda p: p.relative_to(source).as_posix())", ")", "test_bytewise_posix_path_order"),
         ("Dateizahl", "if len(files) > 1000 or", "if False or", "test_file_budget"),
         ("Quellbudget", "if len(files) > 1000 or sum(p.stat().st_size for p in files) > 4 * 1024 * 1024:", "if False:", "test_source_budget"),
         ("Archivbudget", "if len(result) > 4 * 1024 * 1024:", "if False:", "test_archive_budget"),
